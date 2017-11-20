@@ -406,6 +406,7 @@ ins_nginx_app ()
 			fi
 
 			[ -f $soulocation/nginx.conf ] && /bin/cp -f $soulocation/nginx.conf $nginxtarlocation/conf/
+			rm -fr $nginxtarlocation/html/*
 			chown -R nginx.nginx /data/app/nginx/
 		else
 			echo 'Error, nginx installation failed!!'
