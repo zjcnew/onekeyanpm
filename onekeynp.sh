@@ -2,9 +2,9 @@
 
 # Generic script templates for Linux and class Unix platforms
 # Supported: CentOS RedHat
-# Version: 1.06
+# Version: 1.07
 # QQ: 2850317601
-# Updated: 2017/11/14
+# Updated: 2017/11/20
 
 
 downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
