@@ -2,7 +2,7 @@
 
 # Generic script templates for Linux and class Unix platforms
 # Supported: CentOS RedHat
-# Version: 1.07
+# Version: 1.08
 # QQ: 2850317601
 # Updated: 2017/11/20
 
@@ -32,10 +32,26 @@ check_variable ()
 		exit 1
 	fi
 	
-	if [ ! "$downphp" ]
+	if [ "$downphp" ]
 	then
-		echo 'Error,PHP source package download location not specified!!'
-		exit 1
+		if [ ! "$downphpconf" ]
+		then
+			echo 'Error,PHP Configuration file download location not specified!!'
+			exit 1
+		fi
+
+                if [ ! "$downphpfpmconf" ]
+                then
+                        echo 'Error,PHP-FPM Configuration file download location not specified!!'
+                        exit 1
+                fi
+
+		if [ ! "$phptarlocation" ]
+		then
+			echo 'Error,The PHP installation directory is not specified!!'
+			exit 1
+		fi
+
 	fi
 	
 	if [ ! "$downnginxconf" ]
@@ -44,11 +60,6 @@ check_variable ()
 		exit 1
 	fi
 	
-	if [ ! "$downphpconf" ]
-	then
-		echo 'Error,PHP Configuration file download location not specified!!'
-		exit 1
-	fi
 	
 	if [ ! "$location" ]
 	then
@@ -74,11 +85,6 @@ check_variable ()
 		exit 1
 	fi
 	
-	if [ ! "$phptarlocation" ]
-	then
-		echo 'Error,The PHP installation directory is not specified!!'
-		exit 1
-	fi
 
 }
 
