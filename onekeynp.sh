@@ -123,9 +123,12 @@ down_files ()
 	
 	if [ -d $soulocation ]
 	then
-		cd $soulocation && \
-		/usr/bin/curl -k -O $1 &&
-		echo ''Downloaded $1 Successful'!'
+		if [ "$1" ]
+		then
+			cd $soulocation && \
+			/usr/bin/curl -k -O $1 &&
+			echo ''Downloaded $1 Successful'!'
+		fi
 	fi
 
 }
@@ -314,6 +317,18 @@ correct_sys_time ()
 }
 
 
+opt_sysctl ()
+{
+
+if [ $(grep -c "^net.ipv6.conf.all.disable_ipv6" /etc/sysctl.conf) -eq 0 ]
+then
+	echo "net.ipv6.conf.all.disable_ipv6 = 1" >> /etc/sysctl.conf
+else
+	sed -i "s#^net.ipv6.conf.all.disable_ipv6.*#net.ipv6.conf.all.disable_ipv6 = 1#" /etc/sysctl.conf 
+fi
+
+}
+
 ins_depen_pac ()
 {
 
@@ -380,16 +395,17 @@ ins_nginx_app ()
 	
 		if [ -f $nginxtarlocation/sbin/nginx ]
 		then
-			if [ "$(id nginx 2> /dev/null)" ]
+			if [ $(id nginx 2> /dev/null) -eq 0 ]
 			then
 				if [ $(grep '^nginx' /etc/passwd | grep -c '/sbin/nologin') -eq 0 ]
 				then
 					usermod -s /sbin/nologin nginx
 				fi
+			else
+				useradd -M -s /sbin/nologin nginx
 			fi
 
 			[ -f $soulocation/nginx.conf ] && /bin/cp -f $soulocation/nginx.conf $nginxtarlocation/conf/
-			useradd -M -s /sbin/nologin nginx && \
 			chown -R nginx.nginx /data/app/nginx/
 		else
 			echo 'Error, nginx installation failed!!'
@@ -517,9 +533,9 @@ ins_php_app ()
 
 	if [ -f $soulocation/php*.tar.gz ]
 	then
-		cd $soulocation && \
-		tar zxvf php*.tar.gz && \
-		cd php-* && \
+		if [ $install_nginx_status -eq 1 ]
+		then
+cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 ./configure --prefix=$phptarlocation \
 --with-config-file-path=$phptarlocation/etc \
 --with-mcrypt \
@@ -571,6 +587,11 @@ ins_php_app ()
 				echo 'Error, There was an error in configuring phpredis Before compiling!!'
 				exit 2
 			fi
+
+			cd ..
+			curl -O http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-x86_64_update1.tar.gz
+			tar zxf zend-loader-php5.6-linux-x86_64_update1.tar.gz 
+			cp zend-loader-php5.6-linux-x86_64/ZendGuardLoader.so $phptarlocation/lib/php/extensions/no-debug-non-zts-20131226/
 		else
 			echo 'Error, There was an error in configuring php Before compiling!!'
 			exit 2
@@ -598,14 +619,14 @@ ins_php_app ()
 cat > /usr/lib/systemd/system/php-fpm.service << EOF
 [Unit]
 Description=php-fpm
-After=network.target nginx.service
+After=network.target
 
 [Service]
 Type=forking
 LimitNOFILE=655360
 LimitNPROC=655360
-PIDFile=\$phptarlocation/var/run/php-fpm.pid
-ExecStart=\$phptarlocation/sbin/php-fpm --daemonize --fpm-config \$phptarlocation/etc/php-fpm.conf --pid \$phptarlocation/var/run/php-fpm.pid
+PIDFile=$phptarlocation/var/run/php-fpm.pid
+ExecStart=$phptarlocation/sbin/php-fpm --daemonize --fpm-config $phptarlocation/etc/php-fpm.conf --pid $phptarlocation/var/run/php-fpm.pid
 ExecReload=/usr/bin/kill -USR2 $MAINPID
 ExecStop=/usr/bin/kill -QUIT $MAINPID
 
@@ -616,10 +637,11 @@ EOF
                                 if [ "$?" ]
                                 then
                                         systemctl enable php-fpm
-                                        install_php-fpm_status=1
+					install_php_fpm_status=1
                                 fi
 
-                        fi
+                        	fi
+			fi
                 fi
         else
                 echo 'Error,The php source package does not exist!!'
@@ -628,9 +650,60 @@ EOF
 }		
 
 
+logrotate ()
+{
+
+	if [ $install_nginx_status -eq 1 ]
+	then
+
+cat > /etc/logrotate.d/nginx << EOF
+$nginxtarlocation/logs/*.log {
+    create 0644 nginx nginx
+    daily
+    rotate 30
+    dateext
+    missingok
+    notifempty
+    compress
+    sharedscripts
+    postrotate
+        /bin/kill -USR1 \`cat $nginxtarlocation/run/nginx.pid 2>/dev/null\` 2>/dev/null || true
+    endscript
+}
+EOF
+
+	fi
 
 
+	if [ $install_php_fpm_status -eq 1 ]
+	then
 
+cat > /etc/logrotate.d/php-fpm << EOF
+$phptarlocation/log/*.log {
+    daily
+    rotate 30
+    dateext
+    missingok
+    notifempty
+    compress
+    sharedscripts
+    postrotate
+        /usr/bin/systemctl reload php-fpm 2>/dev/null
+    endscript
+}
+EOF
+
+	fi
+}
+
+
+start_service ()
+{
+
+	[ $install_nginx_status -eq 1 ] && systemctl start nginx
+	[ $install_php_fpm_status -eq 1 ] && systemctl start php-fpm
+
+}
 
 
 
@@ -653,5 +726,7 @@ down_files $downnginxconf
 down_files $downphpconf
 down_files $downphpfpmconf
 ins_depen_pac 
-#ins_nginx_app
+ins_nginx_app
 ins_php_app
+logrotate
+start_service
