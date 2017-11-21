@@ -2,9 +2,9 @@
 
 # Generic script templates for Linux and class Unix platforms
 # Supported: CentOS RedHat
-# Version: 1.08
+# Version: 1.09
 # QQ: 2850317601
-# Updated: 2017/11/20
+# Updated: 2017/11/21
 
 
 downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
@@ -26,8 +26,38 @@ phptarlocation="$tarlocation/php"
 check_variable ()
 {
 
-	if [ ! "$downnginx" ]
+	if [ ! "$location" ]
 	then
+		echo 'Error,You must specify the work directory first!!'
+		exit 1
+	fi
+	
+	if [ ! "$soulocation" ]
+	then
+		echo 'Error,Source package download directory not specified!!'
+		exit 1
+	fi
+	
+	if [ ! "$tarlocation" ]
+	then
+		echo 'Error,The software installation directory is not specified!!'
+		exit 1
+	fi
+
+	if [ "$downnginx" ]
+	then
+		if [ ! "$downnginxconf" ]
+		then
+			echo 'Error,Nginx Configuration file download location not specified!!'
+			exit 1
+		fi
+
+		if [ ! "$nginxtarlocation" ]
+		then
+			echo 'Error,The Nginx installation directory is not specified!!'
+			exit 1
+		fi
+	else
 		echo 'Error,Nginx source package download location not specified!!'
 		exit 1
 	fi
@@ -52,37 +82,6 @@ check_variable ()
 			exit 1
 		fi
 
-	fi
-	
-	if [ ! "$downnginxconf" ]
-	then
-		echo 'Error,Nginx Configuration file download location not specified!!'
-		exit 1
-	fi
-	
-	
-	if [ ! "$location" ]
-	then
-		echo 'Error,You must specify the work directory first!!'
-		exit 1
-	fi
-	
-	if [ ! "$soulocation" ]
-	then
-		echo 'Error,Source package download directory not specified!!'
-		exit 1
-	fi
-	
-	if [ ! "$tarlocation" ]
-	then
-		echo 'Error,The software installation directory is not specified!!'
-		exit 1
-	fi
-	
-	if [ ! "$nginxtarlocation" ]
-	then
-		echo 'Error,The Nginx installation directory is not specified!!'
-		exit 1
 	fi
 	
 
@@ -248,8 +247,8 @@ crrect_cenred_selinux ()
 correct_yum_repo ()
 {
 
-	#cd /etc/yum.repos.d && rename .repo .bak *
-	rm -fr /etc/yum.repos.d/*
+	cd /etc/yum.repos.d && rename .repo .bak *
+	#rm -fr /etc/yum.repos.d/*
 	
 cat > /etc/yum.repos.d/CentOS-Base.repo << EOF
 [base]
@@ -348,7 +347,7 @@ libpng libpng-devel bzip2 bzip2-devel \
 libjpeg libjpeg-devel harfbuzz harfbuzz-devel \
 pcre pcre-devel zlib zlib-devel \
 freetype freetype-devel libmcrypt libmcrypt-devel \
-openssl openssl-devel
+openssl openssl-devel libicu-devel
 	elif [ $osver -eq 7 ]
 	then
 yum install -y \
@@ -576,6 +575,7 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 			if [ $install_nginx_status -eq 1 ]
 			then
 				mkdir /data/app/php/tmp
+				ln -s $phptarlocation/bin/* /usr/local/bin/
 				chown nginx.nginx /data/app/php/tmp/
 			else
 				echo 'Warning,nginx is not installed successfully!'
@@ -607,12 +607,15 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 
                 if [ $osver -eq 6 ]
                 then
-                        if [ -f /etc/init.d/nginx ]
+                        if [ -f /etc/init.d/php-fpm ]
                         then
-                                echo 'Error,The nginx service is already exists!!'
+                                echo 'Error,The php-fpm service is already exists!!'
                                 exit 2
                         else
-				echo "php service"
+				cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+				sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
+				chmod 755 /etc/init.d/php-fpm
+				chkconfig --add php-fpm
 
 			fi
 
