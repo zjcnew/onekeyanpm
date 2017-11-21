@@ -2,9 +2,18 @@
 
 # Generic script templates for Linux and class Unix platforms
 # Supported: CentOS RedHat
-# Version: 1.10
+# Version: 1.11
 # Updated: 2017/11/21
 
+
+######	You need to change these  ########
+
+soulocation="/data/src"
+nginxtarlocation="/data/app/nginx"
+phptarlocation="/data/app/php"
+
+
+#####	You may not need to modify these  ######
 
 downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
 downphp="http://cn2.php.net/distributions/php-5.6.31.tar.gz"
@@ -12,36 +21,18 @@ downnginxconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/nginx.co
 downphpconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php.ini"
 downphpfpmconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php-fpm.conf"
 
-location="/data"
-soulocation="$location/src"
-tarlocation="$location/app"
-nginxtarlocation="$tarlocation/nginx"
-phptarlocation="$tarlocation/php"
-
-
 
 
 
 check_variable ()
 {
 
-	if [ ! "$location" ]
-	then
-		echo 'Error,You must specify the work directory first!!'
-		exit 1
-	fi
 	
 	if [ ! "$soulocation" ]
 	then
-		echo 'Error,Source package download directory not specified!!'
-		exit 1
+		soulocation="/usr/src"
 	fi
 	
-	if [ ! "$tarlocation" ]
-	then
-		echo 'Error,The software installation directory is not specified!!'
-		exit 1
-	fi
 
 	if [ "$downnginx" ]
 	then
@@ -90,49 +81,61 @@ check_variable ()
 check_location ()
 {
 
-	if [ ! -d $location ]
-	then
-		mkdir -p $location
-	fi
-	
 	
 	if [ ! -d $soulocation ]
 	then
 		mkdir -p $soulocation
 	else
-		if [ $(ls $soulocation/$* | wc -w) -ne 0 ]
+		if [ -f $soulocation/nginx* -o -d $soulocation/nginx* ]
 		then
-			echo 'Error, Source package directory $soulocation some files exists, Please clean up manually!!'
+			echo 'Error, There are sommethings about nginx in $soulocation, Please clean up manually!!'
 			exit 1
 		fi
+
+		if [ -f $soulocation/php* -o -d $soulocation/php* ]
+		then
+			echo 'Error, There are sommethings about php in $soulocation, Please clean up manually!!'
+			exit 1
+		fi
+
+		if [ -f $soulocation/httpd* -o -d $soulocation/httpd* ]
+		then
+			echo 'Error, There are sommethings about apache in $soulocation, Please clean up manually!!'
+			exit 1
+		fi
+
+		if [ -f $soulocation/mysql* -o  -d $soulocation/mysql* ]
+		then
+			echo 'Error, There are sommethings about mysql in $soulocation, Please clean up manually!!'
+			exit 1
+		fi
+
 	fi
 		
 	
-	if [ ! -d $tarlocation ]
+	if [ -d $nginxtarlocation ]
 	then
-		mkdir -p $tarlocation
-	else
-		if [ $(ls $tarlocation/$* | wc -w) -ne 0 ]
-		then
-			echo 'Error, Installation directory $soulocation some files exists, Please clean up manually!!'
-			exit 1
-		fi
+		echo 'Error, Nginx Installation directory is already exists, Please clean up manually!!'
+		exit 1
 	fi
-	
+
+
+	if [ -d $phptarlocation ]
+	then
+		echo 'Error, PHP Installation directory is already exists, Please clean up manually!!'
+		exit 1
+	fi
 }
 	
 	
 down_files ()
 {	
 	
-	if [ -d $soulocation ]
+	if [ "$1" ]
 	then
-		if [ "$1" ]
-		then
-			cd $soulocation && \
-			/usr/bin/curl -k -O $1 &&
-			echo ''Downloaded $1 Successful'!'
-		fi
+		cd $soulocation && \
+		/usr/bin/curl -k -O $1 &&
+		echo ''Downloaded $1 Successful'!'
 	fi
 
 }
