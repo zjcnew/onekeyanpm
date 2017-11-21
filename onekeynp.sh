@@ -2,8 +2,7 @@
 
 # Generic script templates for Linux and class Unix platforms
 # Supported: CentOS RedHat
-# Version: 1.09
-# QQ: 2850317601
+# Version: 1.10
 # Updated: 2017/11/21
 
 
@@ -302,10 +301,10 @@ correct_sys_time ()
 			systemctl enable chronyd.service
 			systemctl start chronyd.service 
 		else
-			yum erase -y postfix
 			yum install ntp ntpdate -y
 			chkconfig ntpd on
 			chkconfig ntpdate on
+			chkconfig postfix off 2>/dev/null
 			/etc/init.d/ntpd stop 2>/dev/null
 			if [ ${osver} -eq 6 ]
 			then
@@ -612,9 +611,10 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
                                 echo 'Error,The php-fpm service is already exists!!'
                                 exit 2
                         else
-				cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+				cd $soulocation/php-* && cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
 				sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
 				chmod 755 /etc/init.d/php-fpm
+				install_php_fpm_status=1
 				chkconfig --add php-fpm
 
 			fi
@@ -698,7 +698,7 @@ $phptarlocation/log/*.log {
     compress
     sharedscripts
     postrotate
-        /usr/bin/systemctl reload php-fpm 2>/dev/null
+        /bin/kill -USR2 \`cat $phptarlocation/var/run/php-fpm.pid\` 2>/dev/null
     endscript
 }
 EOF
@@ -710,8 +710,16 @@ EOF
 start_service ()
 {
 
-	[ $install_nginx_status -eq 1 ] && systemctl start nginx
-	[ $install_php_fpm_status -eq 1 ] && systemctl start php-fpm
+	if [ $osver -eq 6 ]
+	then
+		[ $install_nginx_status -eq 1 ] && /etc/init.d/nginx start
+		[ $install_php_fpm_status -eq 1 ] && /etc/init.d/php-fpm start
+
+	elif [ $osver -eq 7 ]
+	then
+		[ $install_nginx_status -eq 1 ] && systemctl start nginx
+		[ $install_php_fpm_status -eq 1 ] && systemctl start php-fpm
+	fi
 
 }
 
