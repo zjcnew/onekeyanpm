@@ -15,7 +15,6 @@ downapache="https://mirrors.tuna.tsinghua.edu.cn/apache/httpd/httpd-2.4.29.tar.g
 downphp="http://cn2.php.net/distributions/php-5.6.31.tar.gz"
 #downmysql="ftp://ftp.9527cloud.com/mysql-5.6.38.tar.gz"
 #downnginxconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/nginx.conf"
-downapacheconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/httpd.conf"
 downphpconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php.ini"
 #downphpfpmconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php-fpm.conf"
 #downmysqlconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/my.cnf"
@@ -152,7 +151,6 @@ download ()
   get_file $downphp
   get_file $downmysql
   get_file $downnginxconf
-  get_file $downapacheconf
   get_file $downphpconf
   get_file $downphpfpmconf
   get_file $downmysqlconf
@@ -618,15 +616,63 @@ ins_apache_app ()
     tar zxvf httpd*.tar.gz && \
     cd httpd-*
 ./configure --prefix=$apachetarlocation \
---enable-ssl --enable-so --with-apr-util \
---with-pcre
+--enable-ssl --enable-so --with-pcre
 
     if [ $? -eq 0 ]
     then
       make && make install
+
+      if [ $? -eq 0 ]
+      then
+        sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
+	sed -i "s/^#ServerName www.example.com:80/ServerName www.example.com:80/" $apachetarlocation/conf/httpd.conf
+	rm -f  $apachetarlocation/htdocs/*
+	chown -R daemon.daemon $apachetarlocation
+
+cat >> $apachetarlocation/conf/httpd.conf << EOF
+
+<FilesMatch "\.ph(p[2-6]?|tml)$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+<FilesMatch "\.phps$">
+    SetHandler application/x-httpd-php-source
+</FilesMatch>
+
+EOF
+
+          if [ $osver -eq 6  ]
+	  then
+	    echo ok
+	  elif [ $osver -eq 7 ]
+	  then
+cat > /usr/lib/systemd/system/apache.service << EOF
+[Unit]
+Description=Apache - HTTP Server
+After=network.target mysql.service
+
+[Service]
+Type=forking
+PIDFile=$apachetarlocation/logs/httpd.pid
+ExecStart=$apachetarlocation/bin/httpd -k start
+ExecStop=$apachetarlocation/bin/httpd -k stop
+ExecReload=$apachetarlocation/bin/httpd -k graceful
+
+[Install]
+WantedBy=multi-user.target
+EOF
+	    systemctl enable apache.service
+  	    install_apache_status=1
+
+	  fi
+
+      else
+        echo 'Error,apache Compilation failed!!'
+        exit 2
+      fi
+
     fi
 
-  install_apache_status=1
   fi
 
 }
@@ -943,6 +989,33 @@ EOF
     fi
 
   fi
+
+
+
+  if [ "$install_apache_status" ]
+  then
+
+    if [ "$install_apache_status" -eq 1 ]
+    then
+
+cat > /etc/logrotate.d/apache << EOF
+$apachetarlocation/logs/*_log {
+        notifempty
+        weekly
+        rotate 15
+        dateext
+        missingok
+        compress
+        postrotate
+          $apachetarlocation/bin/httpd -k graceful > /dev/null 2>/dev/null || true
+        endscript
+}
+EOF
+
+    fi
+
+  fi
+
 
 
   if [ "$install_php_fpm_status" ]
