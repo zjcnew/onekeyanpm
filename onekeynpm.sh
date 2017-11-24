@@ -415,7 +415,8 @@ yum install -y gcc cmake gcc-c++ \
 apr-devel apr-util-devel \
 openssl-devel apr-util-devel \
 libxml2-devel libpng-devel \
-libmcrypt-devel zlib-devel
+libmcrypt-devel zlib-devel \
+gmp-devel
 fi
 
 
@@ -1062,6 +1063,16 @@ start_service ()
 
     fi
 
+    if [ "$install_apache_status" ]
+    then
+
+      if [ "$install_apache_status" -eq 1 ]
+      then
+        /etc/init.d/apache start
+      fi
+
+    fi
+
     if [ "$install_php_fpm_status" ]
     then
 
@@ -1092,6 +1103,16 @@ start_service ()
       if [ "$install_nginx_status" -eq 1 ]
       then
         systemctl start nginx
+      fi
+
+    fi
+
+    if [ "$install_apache_status" ]
+    then
+
+      if [ "$install_apache_status" -eq 1 ]
+      then
+        systemctl start apache
       fi
 
     fi
