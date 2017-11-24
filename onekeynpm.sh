@@ -2,25 +2,28 @@
 
 # Generic script templates for Linux and class Unix platforms
 # Supported: CentOS RedHat
-# Version: 1.14
-# Updated: 2017/11/23
+# Version: 1.17
+# Updated: 2017/11/24
 
 
 
 
 #####	You need to modify these  ######
 
-downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
+#downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
+downapache="https://mirrors.tuna.tsinghua.edu.cn/apache/httpd/httpd-2.4.29.tar.gz"
 downphp="http://cn2.php.net/distributions/php-5.6.31.tar.gz"
-downmysql="ftp://ftp.9527cloud.com/mysql-5.6.38.tar.gz"
-downnginxconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/nginx.conf"
+#downmysql="ftp://ftp.9527cloud.com/mysql-5.6.38.tar.gz"
+#downnginxconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/nginx.conf"
+downapacheconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/httpd.conf"
 downphpconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php.ini"
-downphpfpmconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php-fpm.conf"
-downmysqlconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/my.cnf"
+#downphpfpmconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php-fpm.conf"
+#downmysqlconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/my.cnf"
 
 
 soulocation="/data/src"
 nginxtarlocation="/data/app/nginx"
+apachetarlocation="/data/app/apache"
 phptarlocation="/data/app/php"
 mysqltarlocation="/data/app/mysql"
 
@@ -60,10 +63,15 @@ check_variable ()
       exit 1
     fi
 
-    if [ ! "$downphpfpmconf" ]
+    if [ "$downnginx" ]
     then
-      echo 'Error,PHP-FPM Configuration file download location not specified!!'
-      exit 1
+
+      if [ ! "$downphpfpmconf" ]
+      then
+        echo 'Error,PHP-FPM Configuration file download location not specified!!'
+        exit 1
+      fi
+
     fi
 
     if [ ! "$phptarlocation" ]
@@ -90,12 +98,6 @@ check_variable ()
 
   fi
 
-}
-
-
-check_location ()
-{
-	
   if [ ! -d $soulocation ]
   then
     mkdir -p $soulocation
@@ -130,15 +132,30 @@ check_location ()
 }
 	
 	
-down_files ()
-{	
+download ()
+{
+
+  get_file ()
+  {	
 	
-  if [ "$1" ]
-  then
-    cd $soulocation && \
-    /usr/bin/curl -k -O $1 &&
-    echo ''Downloaded $1 Successful'!'
-  fi
+    if [ "$1" ]
+    then
+      cd $soulocation && \
+      /usr/bin/curl -k -O $1 &&
+      echo ''Downloaded $1 Successful'!'
+    fi
+
+  }
+
+  get_file $downnginx
+  get_file $downapache
+  get_file $downphp
+  get_file $downmysql
+  get_file $downnginxconf
+  get_file $downapacheconf
+  get_file $downphpconf
+  get_file $downphpfpmconf
+  get_file $downmysqlconf
 
 }
 
@@ -154,6 +171,8 @@ detect_platform ()
   elif [ "${plaver}" == "FreeBSD" ]
   then
     platform="freebsd"
+  else
+    echo 'Sorry,This platform is not supported!!'
   fi
 
 }
@@ -195,11 +214,11 @@ detect_release_version ()
       fi
 
     else
-      os="other" && echo 'Error,The System type cannot be determined!! '
+      os="other" && echo 'Error,The System type cannot be determined!!'
     fi
 		
   else		
-     echo 'Error,This is not the Linux platform!!'		
+     echo 'Error,This is not a Linux platform!!'		
    fi
 
 }
@@ -321,6 +340,7 @@ correct_sys_time ()
       fi
 
       /etc/init.d/ntpd start
+
     fi
 		
   fi
@@ -340,6 +360,7 @@ opt_sysctl ()
 
 }
 
+
 ins_depen_pac ()
 {
 
@@ -357,6 +378,15 @@ libjpeg libjpeg-devel harfbuzz harfbuzz-devel \
 pcre pcre-devel zlib zlib-devel \
 freetype freetype-devel libmcrypt libmcrypt-devel \
 openssl openssl-devel libicu-devel
+fi
+
+if [ "$downapache" -a "$downphp" ]
+then
+yum install -y \
+
+
+
+
 fi
 
 if [ "downmysql" ]
@@ -381,6 +411,16 @@ freetype freetype-devel libmcrypt libmcrypt-devel \
 openssl openssl-devel
 fi
 
+if [ "$downapache" -a "$downphp" ]
+then
+yum install -y gcc cmake gcc-c++ \
+apr-devel apr-util-devel \
+openssl-devel apr-util-devel \
+libxml2-devel libpng-devel \
+libmcrypt-devel zlib-devel
+fi
+
+
 if [ "$downmysql" ]
 then
 yum install -y \
@@ -390,7 +430,6 @@ zlib-devel bison perl-Data-Dumper
 fi
 
   fi
-
 
 }
 
@@ -431,7 +470,9 @@ ins_nginx_app ()
     if [ -f $nginxtarlocation/sbin/nginx ]
     then
 
-      if [ $(id nginx 2> /dev/null) -eq 0 ]
+      id nginx 2> /dev/null
+
+      if [ $? -eq 0 ]
       then
 
         if [ $(grep '^nginx' /etc/passwd | grep -c '/sbin/nologin') -eq 0 ]
@@ -458,8 +499,7 @@ ins_nginx_app ()
 
       if [ -f /etc/init.d/nginx ]
       then
-        echo 'Error,The nginx service is already exists!!'
-	exit 2
+        echo 'Warning,The nginx service is already exists!'
       else
 cat > /etc/init.d/nginx << EOF
 #!/bin/bash
@@ -532,8 +572,7 @@ EOF
 
       if [ -f /usr/lib/systemd/system/nginx.service ]
       then
-        echo 'Error,The nginx service is already exists!!'
-	exit 2
+        echo 'Warning,The nginx service is already exists!'
       else
 cat > /usr/lib/systemd/system/nginx.service << EOF
 [Unit]
@@ -569,14 +608,40 @@ EOF
 }
 
 
+
+ins_apache_app ()
+{
+
+  if [ "$downapache" -a -f $soulocation/httpd*.tar.gz ]
+  then
+    cd $soulocation && \
+    tar zxvf httpd*.tar.gz && \
+    cd httpd-*
+./configure --prefix=$apachetarlocation \
+--enable-ssl --enable-so --with-apr-util \
+--with-pcre
+
+    if [ $? -eq 0 ]
+    then
+      make && make install
+    fi
+
+  install_apache_status=1
+  fi
+
+}
+
+
 ins_php_app ()
 {
 
   if [ "$downphp" -a -f $soulocation/php*.tar.gz ]
   then
 
-    if [ $install_nginx_status -eq 1 ]
+    if [ "$install_nginx_status" ]
     then
+      if [ $install_nginx_status -eq 1 ]
+      then
 cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 ./configure --prefix=$phptarlocation \
 --with-config-file-path=$phptarlocation/etc \
@@ -611,7 +676,7 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 	if [ $install_nginx_status -eq 1 ]
 	then
 	  mkdir $phptarlocation/tmp
-	  ln -s $phptarlocation/bin/* /usr/local/bin/
+	  ln -s $phptarlocation/bin/* /usr/local/bin/ 2>/dev/null
 	  chown nginx.nginx $phptarlocation/tmp/
 	else
 	  echo 'Warning,nginx is not installed successfully!'
@@ -645,14 +710,13 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 
         if [ -f /etc/init.d/php-fpm ]
         then
-          echo 'Error,The php-fpm service is already exists!!'
-          exit 2
+          echo 'Warning,The php-fpm service is already exists!'
         else
 	  cd $soulocation/php-* && cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
 	  sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
 	  chmod 755 /etc/init.d/php-fpm
-	  install_php_fpm_status=1
 	  chkconfig --add php-fpm
+	  install_php_fpm_status=1
 	fi
 
       elif [ $osver -eq 7 ]
@@ -660,8 +724,7 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 
         if [ -f /usr/lib/systemd/system/php-fpm.service ]
         then
-          echo 'Error,The php-fpm service is already exists!!'
-          exit 2
+          echo 'Warning,The php-fpm service is already exists!'
         else
 cat > /usr/lib/systemd/system/php-fpm.service << EOF
 [Unit]
@@ -688,6 +751,46 @@ EOF
           fi
 
         fi
+
+      fi
+
+      fi
+
+    fi
+
+
+
+
+    if [ "$install_apache_status" ]
+    then
+
+      if [ "$install_apache_status" -eq 1 ]
+      then
+        cd $soulocation && tar zxvf php*.tar.gz && cd php-*
+./configure --prefix=$phptarlocation \
+--with-config-file-path=$phptarlocation/etc \
+--with-apxs2=$apachetarlocation/bin/apxs \
+--with-gd --with-openssl --with-mcrypt \
+--enable-mbstring --with-zlib \
+--enable-sockets --with-gmp
+
+        if [ $? -eq 0 ]
+        then
+	  make && make install
+
+	  if [ $? -eq 0 ]
+	  then
+       	    rm -f /etc/php.ini
+            [ -f $soulocation/php.ini ] && /bin/cp -f $soulocation/php.ini $phptarlocation/etc/
+	    ln -s $soulocation/bin/php /usr/local/bin/ 2>/dev/null
+          else
+	    echo 'Warning,php is not installed successfully!!'
+ 	    exit 2
+	  fi
+
+        else
+	  echo 'Error, There was an error in configuring php Before compiling!!'
+	fi
 
       fi
 
@@ -722,7 +825,9 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
       if [ $? -eq 0 ]
       then
 
-        if [ $(id mysql 2> /dev/null) -eq 0 ]
+        id mysql 2> /dev/null
+	
+	if [ $? -eq 0 ]
         then
 
           if [ $(grep '^mysql' /etc/passwd | grep -c '/sbin/nologin') -eq 0 ]
@@ -750,13 +855,12 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
 
           if [ -f /etc/init.d/mysql ]
           then
-            echo 'Error,The mysql service is already exists!!'
-            exit 2
+            echo 'Warning,The mysql service is already exists!'
           else
             cp $mysqltarlocation/support-files/mysql.server /etc/init.d/mysql
             sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
             chmod 755 /etc/init.d/mysql
-	    ln -s $mysqltarlocation/bin/* /usr/local/bin
+	    ln -s $mysqltarlocation/bin/* /usr/local/bin 2>/dev/null
             chkconfig --add mysql
             install_mysql_status=1
 
@@ -767,8 +871,7 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
 
           if [ -f /usr/lib/systemd/system/mysql.service ]
           then
-            echo 'Error,The mysql service is already exists!!'
-            exit 2
+            echo 'Warning,The mysql service is already exists!'
           else
 cat > /usr/lib/systemd/system/mysql.service << EOF
 [Unit]
@@ -815,8 +918,11 @@ EOF
 logrotate ()
 {
 
-  if [ $install_nginx_status -eq 1 ]
+  if [ "$install_nginx_status" ]
   then
+
+    if [ "$install_nginx_status" -eq 1 ]
+    then
 
 cat > /etc/logrotate.d/nginx << EOF
 $nginxtarlocation/logs/*.log {
@@ -834,11 +940,16 @@ $nginxtarlocation/logs/*.log {
 }
 EOF
 
+    fi
+
   fi
 
 
-  if [ $install_php_fpm_status -eq 1 ]
+  if [ "$install_php_fpm_status" ]
   then
+
+    if [ "$install_php_fpm_status" -eq 1 ]
+    then
 
 cat > /etc/logrotate.d/php-fpm << EOF
 $phptarlocation/log/*.log {
@@ -855,6 +966,8 @@ $phptarlocation/log/*.log {
 }
 EOF
 
+    fi
+
   fi
 
 }
@@ -865,22 +978,74 @@ start_service ()
 
   if [ $osver -eq 6 ]
   then
-    [ $install_nginx_status -eq 1 ] && /etc/init.d/nginx start
-    [ $install_php_fpm_status -eq 1 ] && /etc/init.d/php-fpm start
-    [ $install_mysql_status -eq 1 ] && /etc/init.d/mysql start
+
+    if [ "$install_nginx_status" ]
+    then
+
+      if [ "$install_nginx_status" -eq 1 ]
+      then
+        /etc/init.d/nginx start
+      fi
+
+    fi
+
+    if [ "$install_php_fpm_status" ]
+    then
+
+      if [ "$install_php_fpm_status" -eq 1 ]
+      then
+        /etc/init.d/php-fpm start
+      fi
+
+    fi
+
+    if [ "$install_mysql_status" ]
+    then
+
+      if [ "$install_mysql_status" -eq 1 ]
+      then
+        /etc/init.d/mysql start
+      fi
+
+    fi
+
+
   elif [ $osver -eq 7 ]
   then
-    [ $install_nginx_status -eq 1 ] && systemctl start nginx
-    [ $install_php_fpm_status -eq 1 ] && systemctl start php-fpm
-    [ $install_mysql_status -eq 1 ] && systemctl start mysql
+
+    if [ "$install_nginx_status" ]
+    then
+
+      if [ "$install_nginx_status" -eq 1 ]
+      then
+        systemctl start nginx
+      fi
+
+    fi
+
+    if [ "$install_php_fpm_status" ]
+    then
+
+      if ["$install_php_fpm_status" -eq 1 ]
+      then
+        systemctl start php-fpm
+      fi
+
+    fi
+
+    if [ "$install_mysql_status" ]
+    then
+
+      if [ "$install_mysql_status" -eq 1 ]
+      then
+        systemctl start mysql
+      fi
+
+    fi
+
   fi
 
 }
-
-
-
-
-
 
 
 detect_platform
@@ -888,18 +1053,14 @@ detect_release_version
 detect_cenred_version
 
 check_variable 
-check_location
 crrect_cenred_selinux
 correct_yum_repo
 correct_sys_time
-down_files $downnginx
-down_files $downphp
-down_files $downmysql
-down_files $downnginxconf
-down_files $downphpconf
-down_files $downphpfpmconf
+opt_sysctl
+download
 ins_depen_pac 
 ins_nginx_app
+ins_apache_app
 ins_php_app
 ins_mysql_app
 logrotate

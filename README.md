@@ -17,3 +17,4 @@ Linux平台下一键安装Nginx+PHP+MySQL环境Shell脚本
 	3.如果指定的安装位置存在即将安装的软件或相关的文件，请先手工清除;
 	4.同一个软件源代码安装包与配置文件的下载路径必须同时指定;
 	5.MySQL的编译安装比较漫长，请耐心等待；
+	6.默认MySQL密码未设置，推荐使用 mysql_secure_installation 命令来设置root账户密码。
