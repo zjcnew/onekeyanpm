@@ -2,8 +2,8 @@
 
 # Generic script templates for Linux and class Unix platforms
 # Supported: CentOS RedHat
-# Version: 1.17
-# Updated: 2017/11/24
+# Version: 1.18
+# Updated: 2017/11/29
 
 
 
@@ -15,7 +15,7 @@ downapache="https://mirrors.tuna.tsinghua.edu.cn/apache/httpd/httpd-2.4.29.tar.g
 downphp="http://cn2.php.net/distributions/php-5.6.31.tar.gz"
 #downmysql="ftp://ftp.9527cloud.com/mysql-5.6.38.tar.gz"
 #downnginxconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/nginx.conf"
-downphpconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php.ini"
+#downphpconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php.ini"
 #downphpfpmconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php-fpm.conf"
 #downmysqlconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/my.cnf"
 
@@ -35,9 +35,21 @@ check_variable ()
     soulocation="/usr/src"
   fi
 	
+  if [ ! -d $soulocation ]
+  then
+    mkdir -p $soulocation
+  fi
 
   if [ "$downnginx" ]
   then
+
+    ls $soulocation/nginx* 2>/dev/null
+
+    if [ $? -eq 0 ]
+    then
+      echo 'Error, There are sommethings about nginx in $soulocation, Please clean up manually!!'
+      exit 1
+    fi
 
     if [ ! "$downnginxconf" ]
     then
@@ -56,9 +68,11 @@ check_variable ()
   if [ "$downphp" ]
   then
 
-    if [ ! "$downphpconf" ]
+    ls $soulocation/php* 2>/dev/null
+
+    if [ $? -eq 0 ]
     then
-      echo 'Error,PHP Configuration file download location not specified!!'
+      echo 'Error, There are sommethings about php in $soulocation, Please clean up manually!!'
       exit 1
     fi
 
@@ -84,6 +98,14 @@ check_variable ()
   if [ "$downmysql" ]
   then
 
+    ls $soulocation/mysql* 2>/dev/null
+
+    if [ $? -eq 0 ]
+    then
+      echo 'Error, There are sommethings about mysql in $soulocation, Please clean up manually!!'
+      exit 1
+    fi
+
     if [ ! "$downmysqlconf" ]
     then
       echo 'Error,MySQL Configuration file download location not specified!!'
@@ -97,32 +119,15 @@ check_variable ()
 
   fi
 
-  if [ ! -d $soulocation ]
+
+  if [ "$downapache" ]
   then
-    mkdir -p $soulocation
-  else
 
-    if [ -f $soulocation/nginx* -o -d $soulocation/nginx* ]
-    then
-      echo 'Error, There are sommethings about nginx in $soulocation, Please clean up manually!!'
-      exit 1
-    fi
+    ls $soulocation/httpd* 2>/dev/null
 
-    if [ -f $soulocation/php* -o -d $soulocation/php* ]
-    then
-      echo 'Error, There are sommethings about php in $soulocation, Please clean up manually!!'
-      exit 1
-    fi
-
-    if [ -f $soulocation/httpd* -o -d $soulocation/httpd* ]
+    if [ $? -eq 0 ]
     then
       echo 'Error, There are sommethings about apache in $soulocation, Please clean up manually!!'
-      exit 1
-    fi
-
-    if [ -f $soulocation/mysql* -o  -d $soulocation/mysql* ]
-    then
-      echo 'Error, There are sommethings about mysql in $soulocation, Please clean up manually!!'
       exit 1
     fi
 
@@ -381,13 +386,16 @@ fi
 if [ "$downapache" -a "$downphp" ]
 then
 yum install -y \
-
-
+gcc gcc-c++ perl \
+libxml2-devel \
+expat-devel libpng-devel \
+gmp-devel libmcrypt-devel \
+pcre-devel openssl-devel
 
 
 fi
 
-if [ "downmysql" ]
+if [ "$downmysql" ]
 then
 yum install -y make cmake gcc gcc-c++ \
 ncurses-devel openssl-devel zlib-devel bison perl
@@ -436,17 +444,21 @@ fi
 ins_nginx_app ()
 {
 
-  if [ "$downnginx" -a -f $soulocation/nginx*.tar.gz ]
+  if [ "$downnginx" ]
   then
-    cd $soulocation && \
-    tar zxvf nginx*.tar.gz && \
-    cd nginx-* && \
-    sed -i 's:CFLAGS="$CFLAGS -g":#CFLAGS="$CFLAGS -g":' auto/cc/gcc
-    sed -i 's:"1.12.1":"":' src/core/nginx.h
-    sed -i 's:"nginx/":"":' src/core/nginx.h
-    sed -i 's:"Server\: nginx":"Server\: ":' src/http/ngx_http_header_filter_module.c
-    sed -i 's:" NGINX_VER "::' src/http/ngx_http_special_response.c
-    sed -i 's:"<hr><center>nginx</center>":"<hr><center></center>":' src/http/ngx_http_special_response.c
+    ls $soulocation/nginx*.tar.gz 2>/dev/null
+    
+    if [ $? -eq 0 ]
+    then
+      cd $soulocation && \
+      tar zxvf nginx*.tar.gz && \
+      cd nginx-* && \
+      sed -i 's:CFLAGS="$CFLAGS -g":#CFLAGS="$CFLAGS -g":' auto/cc/gcc
+      sed -i 's:"1.12.1":"":' src/core/nginx.h
+      sed -i 's:"nginx/":"":' src/core/nginx.h
+      sed -i 's:"Server\: nginx":"Server\: ":' src/http/ngx_http_header_filter_module.c
+      sed -i 's:" NGINX_VER "::' src/http/ngx_http_special_response.c
+      sed -i 's:"<hr><center>nginx</center>":"<hr><center></center>":' src/http/ngx_http_special_response.c
 	
 ./configure --prefix=$nginxtarlocation \
 --pid-path=$nginxtarlocation/run/nginx.pid \
@@ -458,48 +470,48 @@ ins_nginx_app ()
 --with-http_realip_module \
 --with-pcre
 	
-    if [ $? -eq 0 ]
-    then
-      make && make install
-    else
-      echo 'Error, There was an error in configuring nginx Before compiling!!'
-      exit 2
-    fi
+      if [ $? -eq 0 ]
+      then
+        make && make install
+      else
+        echo 'Error, There was an error in configuring nginx Before compiling!!'
+        exit 2
+      fi
 	
-    if [ -f $nginxtarlocation/sbin/nginx ]
-    then
+      if [ -f $nginxtarlocation/sbin/nginx ]
+      then
 
       id nginx 2> /dev/null
 
-      if [ $? -eq 0 ]
-      then
+        if [ $? -eq 0 ]
+        then
 
-        if [ $(grep '^nginx' /etc/passwd | grep -c '/sbin/nologin') -eq 0 ]
-	then
-	  usermod -s /sbin/nologin nginx
-	fi
+          if [ $(grep '^nginx' /etc/passwd | grep -c '/sbin/nologin') -eq 0 ]
+	  then
+	    usermod -s /sbin/nologin nginx
+	  fi
+
+        else
+	  useradd -M -s /sbin/nologin nginx
+        fi
+
+        [ -f $soulocation/nginx.conf ] && /bin/cp -f $soulocation/nginx.conf $nginxtarlocation/conf/
+        rm -fr $nginxtarlocation/html/*
+        chown -R nginx.nginx $nginxtarlocation
 
       else
-	useradd -M -s /sbin/nologin nginx
+        echo 'Error, nginx installation failed!!'
+        exit 2
       fi
-
-      [ -f $soulocation/nginx.conf ] && /bin/cp -f $soulocation/nginx.conf $nginxtarlocation/conf/
-      rm -fr $nginxtarlocation/html/*
-      chown -R nginx.nginx $nginxtarlocation
-
-    else
-      echo 'Error, nginx installation failed!!'
-      exit 2
-    fi
 	
 	
-    if [ $osver -eq 6 ]
-    then
-
-      if [ -f /etc/init.d/nginx ]
+      if [ $osver -eq 6 ]
       then
-        echo 'Warning,The nginx service is already exists!'
-      else
+
+        if [ -f /etc/init.d/nginx ]
+        then
+          echo 'Warning,The nginx service is already exists!'
+        else
 cat > /etc/init.d/nginx << EOF
 #!/bin/bash
 #
@@ -557,22 +569,22 @@ esac
 exit 0
 EOF
 
-      fi
+        fi
 			
-      if [ "$?" ]
+        if [ $? -eq 0 ]
+        then
+          chmod 755 /etc/init.d/nginx
+	  install_nginx_status=1
+	  chkconfig --add nginx
+        fi
+			
+      elif [ $osver -eq 7 ]
       then
-        chmod 755 /etc/init.d/nginx
-	install_nginx_status=1
-	chkconfig --add nginx
-      fi
-			
-    elif [ $osver -eq 7 ]
-    then
 
-      if [ -f /usr/lib/systemd/system/nginx.service ]
-      then
-        echo 'Warning,The nginx service is already exists!'
-      else
+        if [ -f /usr/lib/systemd/system/nginx.service ]
+        then
+          echo 'Warning,The nginx service is already exists!'
+        else
 cat > /usr/lib/systemd/system/nginx.service << EOF
 [Unit]
 Description=nginx - A very fast and reliable nginx engine
@@ -592,12 +604,14 @@ ExecStop=$nginxtarlocation/sbin/nginx -s stop
 WantedBy=multi-user.target
 EOF
 
-        if [ "$?" ]
-	then
-	  systemctl enable nginx
-	  install_nginx_status=1
-	fi
-			
+          if [ "$?" ]
+	  then
+	    systemctl enable nginx
+	    install_nginx_status=1
+	  fi
+
+        fi	
+		
       fi
 
     fi
@@ -611,24 +625,94 @@ EOF
 ins_apache_app ()
 {
 
-  if [ "$downapache" -a -f $soulocation/httpd*.tar.gz ]
+  if [ "$downapache" ]
   then
-    cd $soulocation && \
-    tar zxvf httpd*.tar.gz && \
-    cd httpd-*
-./configure --prefix=$apachetarlocation \
---enable-ssl --enable-so --with-pcre
+
+    ls $soulocation/httpd*.tar.gz  2>/dev/null
 
     if [ $? -eq 0 ]
     then
-      make && make install
+      cd $soulocation && \
+      tar zxvf httpd*.tar.gz && \
+      cd httpd-*
+
+      if [ $osver -eq 6 ]
+      then
+        aprtarlocation="$apachetarlocation/../apr" 2>/dev/null
+        aprutiltarlocation="$apachetarlocation/../apr-util" 2>/dev/null
+
+        cd $soulocation && \
+        curl -O https://mirrors.tuna.tsinghua.edu.cn/apache/apr/apr-1.6.3.tar.gz
+
+        ls apr-*.tar.gz 2>/dev/null
+
+        if [ $? -eq 0 ]
+        then
+          tar zxvf apr-*.tar.gz
+          cd apr-* && ./configure --prefix=$aprtarlocation && make && make install && install_apr_status=1
+        fi
+
+        if [ "$install_apr_status" ]
+        then
+
+          if [ "$install_apr_status" -eq 1 ]
+          then
+
+	    cd $soulocation && \
+            curl -O https://mirrors.tuna.tsinghua.edu.cn/apache/apr/apr-util-1.6.1.tar.gz
+
+	    ls apr-util-*.tar.gz 2>/dev/null
+
+            if [ $? -eq 0 ]
+            then
+	      tar zxvf apr-util-*.tar.gz
+              cd apr-util-* && ./configure --prefix=$aprutiltarlocation --with-apr=$aprtarlocation && \
+	      make && make install && install_aprutil_status=1
+            fi
+
+          fi
+
+        else
+          echo 'Error,apr compilation failed!!'
+          exit 2
+        fi
+
+
+        if [ "$install_aprutil_status" ]
+        then
+
+          if [ "$install_aprutil_status" -eq 1 ]
+          then
+cd $soulocation/httpd-*
+./configure --prefix=$apachetarlocation \
+--enable-ssl --enable-so --with-pcre \
+--with-apr=$aprtarlocation \
+--with-apr-util=$aprutiltarlocation
+	  fi
+
+        else
+          echo "Error,apr-util compilation failed!!"
+          exit 2
+        fi
+
+      elif [ $osver -eq 7 ]
+      then
+cd $soulocation/httpd-*
+./configure --prefix=$apachetarlocation \
+--enable-ssl --enable-so --with-pcre
+      fi
+
 
       if [ $? -eq 0 ]
       then
-        sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
-	sed -i "s/^#ServerName www.example.com:80/ServerName www.example.com:80/" $apachetarlocation/conf/httpd.conf
-	rm -f  $apachetarlocation/htdocs/*
-	chown -R daemon.daemon $apachetarlocation
+	make && make install
+
+        if [ $? -eq 0 ]
+        then
+          sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
+	  sed -i "s/^#ServerName www.example.com:80/ServerName www.example.com:80/" $apachetarlocation/conf/httpd.conf
+	  rm -f  $apachetarlocation/htdocs/*
+	  chown -R daemon.daemon $apachetarlocation
 
 cat >> $apachetarlocation/conf/httpd.conf << EOF
 
@@ -642,11 +726,23 @@ cat >> $apachetarlocation/conf/httpd.conf << EOF
 
 EOF
 
-          if [ $osver -eq 6  ]
-	  then
-	    echo ok
-	  elif [ $osver -eq 7 ]
-	  then
+            if [ $osver -eq 6  ]
+	    then
+
+	      if [ -f /etc/init.d/apache ]
+              then
+                echo 'Warning,The apache service is already exists!'
+              else
+                /bin/cp -f $apachetarlocation/bin/apachectl /etc/init.d/apache
+                sed -i "/#!\/bin\/sh/a# chkconfig: 2345 65 35" /etc/init.d/apache
+                chmod 755 /etc/init.d/apache
+                chkconfig --add apache
+	      fi
+
+              install_apache_status=1
+
+	    elif [ $osver -eq 7 ]
+	    then
 cat > /usr/lib/systemd/system/apache.service << EOF
 [Unit]
 Description=Apache - HTTP Server
@@ -665,11 +761,13 @@ EOF
 	    systemctl enable apache.service
   	    install_apache_status=1
 
-	  fi
+	    fi
 
-      else
-        echo 'Error,apache Compilation failed!!'
-        exit 2
+        else
+          echo 'Error,apache Compilation failed!!'
+          exit 2
+        fi
+
       fi
 
     fi
@@ -682,13 +780,19 @@ EOF
 ins_php_app ()
 {
 
-  if [ "$downphp" -a -f $soulocation/php*.tar.gz ]
+  if [ "$downphp" ]
   then
 
-    if [ "$install_nginx_status" ]
+    ls $soulocation/php*.tar.gz 2>/dev/null
+
+    if [ $? -eq 0 ]
     then
-      if [ $install_nginx_status -eq 1 ]
+
+      if [ "$install_nginx_status" ]
       then
+
+        if [ $install_nginx_status -eq 1 ]
+        then
 cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 ./configure --prefix=$phptarlocation \
 --with-config-file-path=$phptarlocation/etc \
@@ -713,66 +817,67 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 --enable-intl --enable-pcntl \
 --with-xmlrpc --enable-exif
 
-      if [ $? -eq 0 ]
-      then
-        make && make install
-	rm -f /etc/php.ini
-	[ -f $soulocation/php.ini ] && /bin/cp -f $soulocation/php.ini $phptarlocation/etc/
-	[ -f $soulocation/php-fpm.conf ] && /bin/cp -f $soulocation/php-fpm.conf $phptarlocation/etc/php-fpm.conf
+        if [ $? -eq 0 ]
+        then
+          make && make install
+	  rm -f /etc/php.ini
+	  [ -f $soulocation/php.ini ] && /bin/cp -f $soulocation/php.ini $phptarlocation/etc/
+	  [ -f $soulocation/php-fpm.conf ] && /bin/cp -f $soulocation/php-fpm.conf $phptarlocation/etc/php-fpm.conf
 			
-	if [ $install_nginx_status -eq 1 ]
-	then
-	  mkdir $phptarlocation/tmp
-	  ln -s $phptarlocation/bin/* /usr/local/bin/ 2>/dev/null
-	  chown nginx.nginx $phptarlocation/tmp/
-	else
-	  echo 'Warning,nginx is not installed successfully!'
-	fi
+	  if [ $install_nginx_status -eq 1 ]
+	  then
+	    mkdir $phptarlocation/tmp
+	    ln -s $phptarlocation/bin/* /usr/local/bin/ 2>/dev/null
+	    chown nginx.nginx $phptarlocation/tmp/
+	  else
+	    echo 'Warning,nginx is not installed successfully!'
+	  fi
 			
-	cd ..
-	yum install autoconf git -y
-	git clone https://github.com/phpredis/phpredis.git
-	cd phpredis && $phptarlocation/bin/phpize && ./configure --with-php-config=$phptarlocation/bin/php-config
+	  cd ..
+	  yum install autoconf git -y
+	  git clone https://github.com/phpredis/phpredis.git
+	  cd phpredis && $phptarlocation/bin/phpize && ./configure --with-php-config=$phptarlocation/bin/php-config
 	
-	if [ $? -eq 0 ]
-	then
-	  make && make install
-	else
-	  echo 'Error, There was an error in configuring phpredis Before compiling!!'
-	  exit 2
-	fi
+	  if [ $? -eq 0 ]
+	  then
+	    make && make install
+	  else
+	    echo 'Error, There was an error in configuring phpredis Before compiling!!'
+	    exit 2
+	  fi
 
-	cd ..
-	curl -O http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-x86_64_update1.tar.gz
-	tar zxf zend-loader-php5.6-linux-x86_64_update1.tar.gz 
-	cp zend-loader-php5.6-linux-x86_64/ZendGuardLoader.so $phptarlocation/lib/php/extensions/no-debug-non-zts-20131226/
-      else
-        echo 'Error, There was an error in configuring php Before compiling!!'
-        exit 2
-      fi
-
-
-      if [ $osver -eq 6 ]
-      then
-
-        if [ -f /etc/init.d/php-fpm ]
-        then
-          echo 'Warning,The php-fpm service is already exists!'
+	  cd ..
+	  curl -O http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-x86_64_update1.tar.gz
+	  tar zxf zend-loader-php5.6-linux-x86_64_update1.tar.gz 
+	  cp zend-loader-php5.6-linux-x86_64/ZendGuardLoader.so $phptarlocation/lib/php/extensions/no-debug-non-zts-20131226/
         else
-	  cd $soulocation/php-* && cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-	  sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
-	  chmod 755 /etc/init.d/php-fpm
-	  chkconfig --add php-fpm
+          echo 'Error, There was an error in configuring php Before compiling!!'
+          exit 2
+        fi
+
+
+        if [ $osver -eq 6 ]
+        then
+
+          if [ -f /etc/init.d/php-fpm ]
+          then
+            echo 'Warning,The php-fpm service is already exists!'
+          else
+	    cd $soulocation/php-* && cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+	    sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
+	    chmod 755 /etc/init.d/php-fpm
+	    chkconfig --add php-fpm
+	  fi
+
 	  install_php_fpm_status=1
-	fi
 
-      elif [ $osver -eq 7 ]
-      then
-
-        if [ -f /usr/lib/systemd/system/php-fpm.service ]
+        elif [ $osver -eq 7 ]
         then
-          echo 'Warning,The php-fpm service is already exists!'
-        else
+
+          if [ -f /usr/lib/systemd/system/php-fpm.service ]
+          then
+            echo 'Warning,The php-fpm service is already exists!'
+          else
 cat > /usr/lib/systemd/system/php-fpm.service << EOF
 [Unit]
 Description=php-fpm
@@ -791,15 +896,15 @@ ExecStop=/usr/bin/kill -QUIT $MAINPID
 WantedBy=multi-user.target
 EOF
 
-          if [ "$?" ]
-          then
-            systemctl enable php-fpm
-	    install_php_fpm_status=1
+            if [ "$?" ]
+            then
+              systemctl enable php-fpm
+	      install_php_fpm_status=1
+            fi
+
           fi
 
         fi
-
-      fi
 
       fi
 
@@ -828,7 +933,8 @@ EOF
 	  if [ $? -eq 0 ]
 	  then
        	    rm -f /etc/php.ini
-            [ -f $soulocation/php.ini ] && /bin/cp -f $soulocation/php.ini $phptarlocation/etc/
+            /bin/cp -f php.ini-production $phptarlocation/etc/php.ini
+	    sed -i "s/;date.timezone =/date.timezone = Asia\/Shanghai/" $phptarlocation/etc/php.ini
 	    ln -s $soulocation/bin/php /usr/local/bin/ 2>/dev/null
           else
 	    echo 'Warning,php is not installed successfully!!'
@@ -843,6 +949,8 @@ EOF
 
     fi
 
+   fi
+
   fi
 
 }		
@@ -851,10 +959,15 @@ EOF
 ins_mysql_app ()
 {
 
-  if [ "$downmysql" -a -f $soulocation/mysql*.tar.gz ]
+  if [ "$downmysql" ]
   then
-    cd $soulocation && tar zxf mysql*.tar.gz
-    cd $soulocation/mysql-*
+
+    ls $soulocation/mysql*.tar.gz 2>/dev/null
+
+    if [ $? -eq 0 ]
+    then
+      cd $soulocation && tar zxf mysql*.tar.gz
+      cd $soulocation/mysql-*
 cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
 -DDEFAULT_SYSCONFDIR=$mysqltarlocation/etc \
 -DMYSQL_DATADIR=$mysqltarlocation/data \
@@ -865,61 +978,62 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
 -DDEFAULT_COLLATION=utf8_general_ci \
 -DWITH_ZLIB=system -DWITH_LIBWRAP=0
 
-    if [ $? -eq 0 ]
-    then
-      make && make install
-
       if [ $? -eq 0 ]
       then
+        make && make install
 
-        id mysql 2> /dev/null
-	
-	if [ $? -eq 0 ]
+        if [ $? -eq 0 ]
         then
 
-          if [ $(grep '^mysql' /etc/passwd | grep -c '/sbin/nologin') -eq 0 ]
+          id mysql 2> /dev/null
+	
+	  if [ $? -eq 0 ]
           then
-            usermod -s /sbin/nologin mysql
+
+            if [ $(grep '^mysql' /etc/passwd | grep -c '/sbin/nologin') -eq 0 ]
+            then
+              usermod -s /sbin/nologin mysql
+            fi
+
+          else
+            useradd -M -s /sbin/nologin mysql
           fi
 
-        else
-          useradd -M -s /sbin/nologin mysql
-        fi
+	  mkdir -p $mysqltarlocation/{etc,log,run,tmp}
+	  [ -f /etc/my.cnf ] && mv -f /etc/my.cnf /etc/my.cnf.bak
+	  [ -d /etc/my.cnf.d ] && mv -f /etc/my.cnf.d /etc/my.cnf.d.bak
+	  sed -i "s#^socket.*#socket          = $mysqltarlocation/mysql.sock#" $soulocation/my.cnf
+	  sed -i "s#^log-error.*#log-error          = $mysqltarlocation/log/mysql.log#" $soulocation/my.cnf
+	  sed -i "s#^pid-file.*#pid-file          = $mysqltarlocation/run/mysqld.pid#" $soulocation/my.cnf
+	  sed -i "s#^datadir.*#datadir          = $mysqltarlocation/data#" $soulocation/my.cnf
+	  sed -i "s#^tmpdir.*#tmpdir          = $mysqltarlocation/tmp#" $soulocation/my.cnf
+	  /bin/cp -f $soulocation/my.cnf $mysqltarlocation/etc/
+	  chown -R mysql.mysql  $mysqltarlocation
 
-	mkdir -p $mysqltarlocation/{etc,log,run,tmp}
-	[ -f /etc/my.cnf ] && mv -f /etc/my.cnf /etc/my.cnf.bak
-	[ -d /etc/my.cnf.d ] && mv -f /etc/my.cnf.d /etc/my.cnf.d.bak
-	sed -i "s#^socket.*#socket          = $mysqltarlocation/mysql.sock#" $soulocation/my.cnf
-	sed -i "s#^log-error.*#log-error          = $mysqltarlocation/log/mysql.log#" $soulocation/my.cnf
-	sed -i "s#^pid-file.*#pid-file          = $mysqltarlocation/run/mysqld.pid#" $soulocation/my.cnf
-	sed -i "s#^datadir.*#datadir          = $mysqltarlocation/data#" $soulocation/my.cnf
-	sed -i "s#^tmpdir.*#tmpdir          = $mysqltarlocation/tmp#" $soulocation/my.cnf
-	/bin/cp -f $soulocation/my.cnf $mysqltarlocation/etc/
-	chown -R mysql.mysql  $mysqltarlocation
-
-        if [ $osver -eq 6 ]
-        then
-
-          if [ -f /etc/init.d/mysql ]
+          if [ $osver -eq 6 ]
           then
-            echo 'Warning,The mysql service is already exists!'
-          else
-            cp $mysqltarlocation/support-files/mysql.server /etc/init.d/mysql
-            sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
-            chmod 755 /etc/init.d/mysql
-	    ln -s $mysqltarlocation/bin/* /usr/local/bin 2>/dev/null
-            chkconfig --add mysql
+
+            if [ -f /etc/init.d/mysql ]
+            then
+              echo 'Warning,The mysql service is already exists!'
+            else
+              cp $mysqltarlocation/support-files/mysql.server /etc/init.d/mysql
+              sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
+              chmod 755 /etc/init.d/mysql
+	      ln -s $mysqltarlocation/bin/* /usr/local/bin 2>/dev/null
+              chkconfig --add mysql
+
+            fi
+
             install_mysql_status=1
 
-          fi
-
-        elif [ $osver -eq 7 ]
-        then
-
-          if [ -f /usr/lib/systemd/system/mysql.service ]
+          elif [ $osver -eq 7 ]
           then
-            echo 'Warning,The mysql service is already exists!'
-          else
+
+            if [ -f /usr/lib/systemd/system/mysql.service ]
+            then
+              echo 'Warning,The mysql service is already exists!'
+            else
 cat > /usr/lib/systemd/system/mysql.service << EOF
 [Unit]
 Description=MySQL Database Server Engine
@@ -940,24 +1054,25 @@ ExecStop=/usr/bin/kill \$MAINPID
 [Install]
 WantedBy=multi-user.target
 EOF
-	  fi
+	    fi
 
-	  if [ $? -eq 0 ]
-	  then
-            systemctl enable mysql
-	    ln -s $mysqltarlocation/bin/* /usr/local/bin
-            install_mysql_status=1
-	  fi
+	    if [ $? -eq 0 ]
+	    then
+              systemctl enable mysql
+	      ln -s $mysqltarlocation/bin/* /usr/local/bin
+              install_mysql_status=1
+	    fi
 
-	fi
+	  fi
 
 	$mysqltarlocation/scripts/mysql_install_db --keep-my-cnf --user=mysql --basedir=$mysqltarlocation --datadir=$mysqltarlocation/data > /dev/null 2>&1
-      fi
+        fi
 			
+      fi
+
     fi
 
   fi
-
 
 }
 
