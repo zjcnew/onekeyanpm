@@ -47,13 +47,13 @@ check_variable ()
 
     if [ $? -eq 0 ]
     then
-      echo 'Error, There are sommethings about nginx in $soulocation, Please clean up manually!!'
+      echo "Error, There are sommethings about nginx in $soulocation, Please clean up manually"'!!'
       exit 1
     fi
 
     if [ ! "$downnginxconf" ]
     then
-      echo 'Error,Nginx Configuration file download location not specified!!'
+      echo "Error,Nginx Configuration file download location not specified"'!!'
       exit 1
     fi
 
@@ -72,7 +72,7 @@ check_variable ()
 
     if [ $? -eq 0 ]
     then
-      echo 'Error, There are sommethings about php in $soulocation, Please clean up manually!!'
+      echo "Error, There are sommethings about php in $soulocation, Please clean up manually"'!!'
       exit 1
     fi
 
@@ -81,7 +81,7 @@ check_variable ()
 
       if [ ! "$downphpfpmconf" ]
       then
-        echo 'Error,PHP-FPM Configuration file download location not specified!!'
+        echo "Error,PHP-FPM Configuration file download location not specified"'!!'
         exit 1
       fi
 
@@ -102,13 +102,13 @@ check_variable ()
 
     if [ $? -eq 0 ]
     then
-      echo 'Error, There are sommethings about mysql in $soulocation, Please clean up manually!!'
+      echo "Error, There are sommethings about mysql in $soulocation, Please clean up manually"'!!'
       exit 1
     fi
 
     if [ ! "$downmysqlconf" ]
     then
-      echo 'Error,MySQL Configuration file download location not specified!!'
+      echo "Error,MySQL Configuration file download location not specified"'!!'
       exit 1
     fi
 
@@ -127,7 +127,7 @@ check_variable ()
 
     if [ $? -eq 0 ]
     then
-      echo 'Error, There are sommethings about apache in $soulocation, Please clean up manually!!'
+      echo "Error, There are sommethings about apache in $soulocation, Please clean up manually"'!!'
       exit 1
     fi
 
@@ -864,9 +864,14 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
             echo 'Warning,The php-fpm service is already exists!'
           else
 	    cd $soulocation/php-* && cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-	    sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
-	    chmod 755 /etc/init.d/php-fpm
-	    chkconfig --add php-fpm
+
+            if [ -f /etc/init.d/php-fpm ]
+            then
+	      sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
+	      chmod 755 /etc/init.d/php-fpm
+	      chkconfig --add php-fpm
+	    fi
+
 	  fi
 
 	  install_php_fpm_status=1
