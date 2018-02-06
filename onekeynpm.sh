@@ -10,9 +10,9 @@
 
 #####	You need to modify these  ######
 
-#downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
-downapache="https://mirrors.tuna.tsinghua.edu.cn/apache/httpd/httpd-2.4.29.tar.gz"
-downphp="http://cn2.php.net/distributions/php-5.6.31.tar.gz"
+downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
+#downapache="https://mirrors.tuna.tsinghua.edu.cn/apache/httpd/httpd-2.4.29.tar.gz"
+downphp="http://cn2.php.net/distributions/php-5.6.33.tar.gz"
 #downmysql="ftp://ftp.9527cloud.com/mysql-5.6.38.tar.gz"
 #downnginxconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/nginx.conf"
 #downphpconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php.ini"
