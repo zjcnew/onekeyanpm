@@ -15,12 +15,12 @@ Linux平台下一键部署Apache/Nginx+PHP+MySQL环境
 注意事项
 ----
         1.可安装的环境类型,请选择一种环境安装!
-	 Nginx
-	 Apache
-	 Nginx+PHP+PHP-FPM
-	 Apache+PHP
-	 Nginx+PHP+PHP-FPM+MySQL
-	 Apache+PHP+MySQL
+         Nginx
+         Apache
+         Nginx+PHP+PHP-FPM
+         Apache+PHP
+         Nginx+PHP+PHP-FPM+MySQL
+         Apache+PHP+MySQL
         2.编译环境至少需要2GB的空闲内存空间（包含swap），否则可能会导致PHP编译失败！
         3.目前仅支持使用.tar.gz压缩格式源代码安装包;
         4.如果指定的安装位置存在即将安装的软件或相关的文件，请先手工清除;
