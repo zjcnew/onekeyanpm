@@ -448,7 +448,7 @@ apr-devel apr-util-devel \
 openssl-devel apr-util-devel \
 libxml2-devel libpng-devel \
 libmcrypt-devel zlib-devel \
-gmp-devel
+gmp-devel curl-devel
 fi
 
 
