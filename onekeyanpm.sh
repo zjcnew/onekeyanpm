@@ -1,11 +1,7 @@
 #!/bin/bash
 
-# Generic script templates for Linux Platform
-# Supported: CentOS RedHat
-# Version: 1.20
-# Updated: 2018/02/07
-
-
+# Generic Script Templates For Linux Platform
+# Supported: CentOS RedHat 6/7
 
 
 #####	You need to modify these  ######
@@ -38,17 +34,21 @@ downphpfpmconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php-fpm
 # 源码包存储位置
 soulocation="/data/src"
 
+# 软件包的安装位置
+tarlocation="/data/app"
+
 # Nginx的安装位置
-nginxtarlocation="/data/app/nginx"
+nginxtarlocation="$tarlocation/nginx"
 
 # Apache的安装位置
-apachetarlocation="/data/app/apache"
+apachetarlocation="$tarlocation/apache"
 
 # PHP的安装位置
-phptarlocation="/data/app/php"
+phptarlocation="$tarlocation/php"
 
 # MySQL的安装位置
-mysqltarlocation="/data/app/mysql"
+mysqltarlocation="$tarlocation/mysql"
+
 
 
 check_variable ()
@@ -414,7 +414,8 @@ gcc gcc-c++ perl \
 libxml2-devel \
 expat-devel libpng-devel \
 gmp-devel libmcrypt-devel \
-pcre-devel openssl-devel
+pcre-devel openssl-devel \
+freetype-devel curl-devel
 
 
 fi
@@ -735,8 +736,12 @@ cd $soulocation/httpd-*
 
         if [ $? -eq 0 ]
         then
+          sed -i "242s/AllowOverride None/AllowOverride All/" $apachetarlocation/conf/httpd.conf
+          sed -i "235s/Options Indexes FollowSymLinks/Options  FollowSymLinks/" $apachetarlocation/conf/httpd.conf
           sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#ServerName www.example.com:80/ServerName www.example.com:80/" $apachetarlocation/conf/httpd.conf
+	  sed -i "s/^#LoadModule rewrite_module modules\/mod_rewrite.so/LoadModule rewrite_module modules\/mod_rewrite.so/" $apachetarlocation/conf/httpd.conf
+	  sed -i "s/^#EnableSendfile on/EnableSendfile on/" $apachetarlocation/conf/httpd.conf
 	  rm -f  $apachetarlocation/htdocs/*
 	  chown -R daemon.daemon $apachetarlocation
 
@@ -855,6 +860,7 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 	    mkdir $phptarlocation/tmp
 	    ln -s $phptarlocation/bin/* /usr/local/bin/ 2>/dev/null
 	    chown nginx.nginx $phptarlocation/tmp/
+            sed -i "s/^session.save_path =.*/session.save_path = \"$phptarlocation\/tmp\"/" $phptarlocation/etc/php.ini
 	  else
 	    echo 'Warning,nginx is not installed successfully!'
 	  fi
@@ -968,6 +974,7 @@ EOF
        	    rm -f /etc/php.ini
             /bin/cp -f php.ini-production $phptarlocation/etc/php.ini
 	    sed -i "s/;date.timezone =/date.timezone = Asia\/Shanghai/" $phptarlocation/etc/php.ini
+	    sed -i "s/^upload_max_filesize = 2M/upload_max_filesize = 15M/" $phptarlocation/etc/php.ini
 	    ln -s $soulocation/bin/php /usr/local/bin/ 2>/dev/null
           else
 	    echo 'Warning,php is not installed successfully!!'
@@ -1080,7 +1087,7 @@ LimitNOFILE=65536
 LimitNPROC=65536
 LimitMEMLOCK=infinity
 PIDFile=$mysqltarlocation/run/mysqld.pid
-ExecStart=$mysqltarlocation/bin/mysqld_safe --datadir=$mysqltarlocation/data --pid-file=$mysqltarlocation/run/mysqld.pid "$*"
+ExecStart=$mysqltarlocation/bin/mysqld_safe --no-defaults --datadir=$mysqltarlocation/data --pid-file=$mysqltarlocation/run/mysqld.pid --log-error=$mysqltarlocation/log/mysql.log "$*"
 ExecReload=/usr/bin/kill -HUP \$MAINPID
 ExecStop=/usr/bin/kill \$MAINPID
 
@@ -1098,7 +1105,7 @@ EOF
 
 	  fi
 
-	$mysqltarlocation/scripts/mysql_install_db --keep-my-cnf --user=mysql --basedir=$mysqltarlocation --datadir=$mysqltarlocation/data > /dev/null 2>&1
+	$mysqltarlocation/scripts/mysql_install_db --keep-my-cnf --user=mysql --basedir=$mysqltarlocation --datadir=$mysqltarlocation/data
         fi
 			
       fi
@@ -1268,7 +1275,7 @@ start_service ()
     if [ "$install_php_fpm_status" ]
     then
 
-      if ["$install_php_fpm_status" -eq 1 ]
+      if [ "$install_php_fpm_status" -eq 1 ]
       then
         systemctl start php-fpm
       fi
