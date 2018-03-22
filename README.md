@@ -7,6 +7,7 @@ grammar_cjkRuby: true
 
 # 支持系统
 CentOS/RedHat 6/7
+
 # 环境类型        
 1.可安装的环境类型,请选择一种环境安装!
     
@@ -24,7 +25,6 @@ CentOS/RedHat 6/7
         CentOS6：/etc/init.d/nginx restart     CentOS7：systemctl restart nginx
 
 # 使用方法
-----
  1.下载脚本 curl -O [https://raw.githubusercontent.com/zjcnew/onekeynp/master/onekeyanpm.sh][1]
     
  2.修改脚本，配置需要安装的应用相关文件的下载地址，注释掉不需安装的应用
@@ -32,7 +32,6 @@ CentOS/RedHat 6/7
  3.执行脚本自动安装 bash onekeyanpm.sh
 
 # 注意事项
-----
 
 1.编译环境至少需要==2==GB的空闲内存空间（包含swap），否则可能会导致PHP编译失败！
     
