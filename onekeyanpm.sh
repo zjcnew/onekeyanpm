@@ -860,7 +860,7 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 	    mkdir $phptarlocation/tmp
 	    ln -s $phptarlocation/bin/* /usr/local/bin/ 2>/dev/null
 	    chown nginx.nginx $phptarlocation/tmp/
-            sed -i "s/^session.save_path =.*/session.save_path = \"$phptarlocation\/tmp\"/" $phptarlocation/etc/php.ini
+            sed -i "s#^session.save_path =.*#session.save_path = \"$phptarlocation/tmp\"#" $phptarlocation/etc/php.ini
 	  else
 	    echo 'Warning,nginx is not installed successfully!'
 	  fi
@@ -962,6 +962,7 @@ EOF
 --with-gd --with-openssl --with-mcrypt \
 --enable-mbstring --with-zlib --with-curl \
 --enable-sockets --with-gmp --enable-bcmath \
+--enable-gd-native-ttf --with-freetype-dir \
 --enable-mysqlnd --with-mysqli=mysqlnd \
 --with-pdo-mysql=mysqlnd 
 
@@ -973,8 +974,11 @@ EOF
 	  then
        	    rm -f /etc/php.ini
             /bin/cp -f php.ini-production $phptarlocation/etc/php.ini
+            mkdir -p $phptarlocation/tmp
+            chown daemon.daemon $phptarlocation/tmp
 	    sed -i "s/;date.timezone =/date.timezone = Asia\/Shanghai/" $phptarlocation/etc/php.ini
 	    sed -i "s/^upload_max_filesize = 2M/upload_max_filesize = 15M/" $phptarlocation/etc/php.ini
+            sed -i "s#;session.save_path = .*#session.save_path = \"$phptarlocation/tmp\"#" $phptarlocation/etc/php.ini
 	    ln -s $soulocation/bin/php /usr/local/bin/ 2>/dev/null
           else
 	    echo 'Warning,php is not installed successfully!!'
