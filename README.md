@@ -6,10 +6,8 @@ grammar_cjkRuby: true
 
 
 # 支持系统
-----
 CentOS/RedHat 6/7
 # 环境类型        
-----
 1.可安装的环境类型,请选择一种环境安装!
     
         Nginx
