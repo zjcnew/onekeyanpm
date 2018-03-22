@@ -1,14 +1,9 @@
----
-title: Linux平台一键部署Apache/Nginx+PHP+MySQL环境
-tags: Linux,lnmp,lamp,部署,环境,一键,自动化,
-grammar_cjkRuby: true
----
+# Linux平台一键部署Apache/Nginx+PHP+MySQL环境
 
-
-# 支持系统
+## 支持系统
 CentOS/RedHat 6/7
 
-# 环境类型        
+## 环境类型        
 1.可安装的环境类型,请选择一种环境安装!
     
         Nginx
@@ -24,14 +19,14 @@ CentOS/RedHat 6/7
         CentOS6：/etc/init.d/nginx stop        CentOS7：systemctl stop nginx
         CentOS6：/etc/init.d/nginx restart     CentOS7：systemctl restart nginx
 
-# 使用方法
+## 使用方法
  1.下载脚本 curl -O [https://raw.githubusercontent.com/zjcnew/onekeynp/master/onekeyanpm.sh][1]
     
  2.修改脚本，配置需要安装的应用相关文件的下载地址，注释掉不需安装的应用
     
  3.执行脚本自动安装 bash onekeyanpm.sh
 
-# 注意事项
+## 注意事项
 
 1.编译环境至少需要==2==GB的空闲内存空间（包含swap），否则可能会导致PHP编译失败！
     
