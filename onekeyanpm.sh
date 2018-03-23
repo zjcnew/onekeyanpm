@@ -1416,7 +1416,6 @@ start_service ()
 }
 
 
-
   init_params
   detect_platform
   detect_release_version
