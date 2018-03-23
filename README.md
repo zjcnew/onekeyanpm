@@ -31,11 +31,55 @@ CentOS/RedHat 6/7
 
     
 
- 1. 修改脚本，配置需要安装的应用相关文件的下载地址，注释掉不需安装的应用
+ 1. 应用程序的源码包文件默认从对应的官网下载，您可以自由修改下载地址；安装位置默认 /data/app 目录，您也可修改安装到其他位置；
 
     
 
- 1. 执行脚本自动安装 bash onekeyanpm.sh
+ 1. 执行脚本 bash onekeyanpm.sh，选择环境类型即可自动部署。
+
+ 
+## 目录规划
+
+应用程序默认安装到 /data/app 目录下，如Nginx安装位置  /data/app/nginx，Apache安装位置 /data/app/apache；
+
+ ### Nginx
+ - 配置文件  nginx/conf/nginx.conf
+ - 站点根目录  nginx/html
+ - 日志目录 nginx/logs
+ - 可执行文件 nginx/sbin/nginx
+ - 进程文件 nginx/run/nginx.pid
+
+### Apache
+
+ - 配置文件：apache/conf/httpd.conf 
+ - 站点根目录：apache/htdocs
+ - 日志目录：apache/logs
+ - 可执行文件目录：apache/bin
+ - 模块文件目录：apache/modules
+
+### PHP
+
+ - 配置文件：php/etc/php.ini
+ - 可执行文件目录：php/bin
+ - 日志目录：php/var/log
+ - 临时目录：php/tmp
+ - 自定义模块目录：php/lib/php/extensions/no-debug-zts-20131226
+
+### PHP-FPM
+
+ - 配置文件：php/etc/php-fpm.conf
+ - 进程文件：php/var/run/php-fpm.pid
+
+### MySQL
+
+ - 配置文件：mysql/etc/my.cnf
+ - 数据目录：mysql/data
+ - 可执行文件目录：mysql/bin
+ - 进程文件：mysql/run/mysqld.pid
+ - SOCK文件：mysql/mysql.sock
+ - 日志目录：mysql/log
+ - 临时目录：mysql/tmp
+
 
 ## 注意事项
 
