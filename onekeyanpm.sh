@@ -1299,24 +1299,6 @@ start_service ()
 }
 
 
-<<<<<<< HEAD
-detect_platform
-detect_release_version
-detect_cenred_version
-check_variable 
-crrect_cenred_selinux
-correct_yum_repo
-correct_sys_time
-opt_sysctl
-download
-ins_depen_pac 
-ins_nginx_app
-ins_apache_app
-ins_php_app
-ins_mysql_app
-logrotate
-start_service
-=======
   init_params
   detect_platform
   detect_release_version
@@ -1334,4 +1316,3 @@ start_service
   ins_mysql_app
   logrotate
   start_service
->>>>>>> 1.22
