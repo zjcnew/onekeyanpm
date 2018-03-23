@@ -1046,6 +1046,7 @@ EOF
 	    sed -i "s/;date.timezone =/date.timezone = Asia\/Shanghai/" $phptarlocation/etc/php.ini
 	    sed -i "s/^upload_max_filesize = 2M/upload_max_filesize = 15M/" $phptarlocation/etc/php.ini
             sed -i "s#;session.save_path = .*#session.save_path = \"$phptarlocation/tmp\"#" $phptarlocation/etc/php.ini
+            sed -i "s/expose_php.*/expose_php = Off/" $phptarlocation/etc/php.ini
 	    ln -s $soulocation/bin/php /usr/local/bin/ 2>/dev/null
           else
 	    echo 'Warning,php is not installed successfully!!'
