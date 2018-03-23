@@ -1,6 +1,7 @@
 #!/bin/bash
 
 
+
 # Nginx源码包下载地址，默认从官网下载。
 downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
 
