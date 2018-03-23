@@ -21,11 +21,11 @@ CentOS/RedHat 6/7
  2. 应用程序的源码包文件默认从对应的官网下载，您可以自由修改下载地址；安装位置默认 /data/app 目录，您也可修改安装到其他位置；
  2. 执行脚本 bash onekeyanpm.sh，选择环境类型即可自动部署；
  3. 服务启动/停止/重启方法（示例）
-  ####  CentOS/Redhat **==6==**
- - /etc/init.d/nginx start
+       ####  CentOS/Redhat **6**
+  - /etc/init.d/nginx start
  - /etc/init.d/nginx stop
  - /etc/init.d/nginx restart
-#### CentOS/Redhat ==**7**==
+      #### CentOS/Redhat **7**
  - systemctl start nginx
  - systemctl stop nginx
  - systemctl restart nginx
