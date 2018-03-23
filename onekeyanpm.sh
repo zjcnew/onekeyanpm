@@ -806,6 +806,9 @@ cd $soulocation/httpd-*
 	  sed -i "s/^#ServerName www.example.com:80/ServerName www.example.com:80/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#LoadModule rewrite_module modules\/mod_rewrite.so/LoadModule rewrite_module modules\/mod_rewrite.so/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#EnableSendfile on/EnableSendfile on/" $apachetarlocation/conf/httpd.conf
+          sed -i "s:^#Include conf/extra/httpd-default.conf:Include conf/extra/httpd-default.conf:" $apachetarlocation/conf/httpd.conf
+          sed -i "s/^ServerTokens.*/ServerTokens Prod/" $apachetarlocation/conf/httpd.conf
+          sed -i "s:^#LoadModule deflate_module modules/mod_deflate.so:LoadModule deflate_module modules/mod_deflate.so:" $apachetarlocation/conf/httpd.conf
 	  rm -f  $apachetarlocation/htdocs/*
 	  chown -R daemon.daemon $apachetarlocation
 
