@@ -4,17 +4,19 @@
 # Supported: CentOS RedHat 6/7
 
 
+#####	You need to modify these  ######
+
 # Nginx源码包下载地址，默认从官网下载。
 downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
 
 # Apache源码包下载地址，默认从官网下载。
-downapache="https://mirrors.tuna.tsinghua.edu.cn/apache/httpd/httpd-2.4.29.tar.gz"
+#downapache="https://mirrors.tuna.tsinghua.edu.cn/apache/httpd/httpd-2.4.29.tar.gz"
 
 # PHP源码包下载地址，默认从官网下载。
-downphp="http://cn2.php.net/distributions/php-5.6.34.tar.gz"
+downphp="http://cn2.php.net/distributions/php-5.6.33.tar.gz"
 
 # MySQL源码包下载地址，默认从官网下载。
-downmysql="https://cdn.mysql.com//Downloads/MySQL-5.6/mysql-5.6.39.tar.gz"
+#downmysql="https://cdn.mysql.com//Downloads/MySQL-5.6/mysql-5.6.39.tar.gz"
 
 # Nginx配置文件下载地址
 downnginxconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/nginx.conf"
@@ -26,7 +28,7 @@ downphpconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php.ini"
 downphpfpmconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/php-fpm.conf"
 
 # MySQL配置文件下载地址
-downmysqlconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/my.cnf"
+#downmysqlconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/my.cnf"
 
 
 # 源码包存储位置
@@ -49,72 +51,6 @@ mysqltarlocation="$tarlocation/mysql"
 
 
 
-input=""
-
-if [ ! "$input" ]
-then
-
-  choose() {
-    echo ""
-    echo "1. Nginx"
-    echo "2. Apache"
-    echo "3. Nginx + PHP + PHP-FPM"
-    echo "4. Apache + PHP"
-    echo "5. Nginx + PHP + PHP-FPM + MySQL"
-    echo "6. Apache + PHP + MySQL"  
-    echo ""
-    read -p "Please choose the type of deploy environment：" input
-    echo ""
-  }
-
-fi
-
-
-init_params() {
-    choose
-    case $input in
-    1)
-      downapache=""
-      downphp=""
-      downmysql=""
-      downphpconf=""
-      downphpfpmconf=""
-      downmysqlconf=""
-    ;;
-    2)
-      downnginx=""
-      downphp=""
-      downmysql=""
-      downnginxconf=""
-      downphpconf=""
-      downphpfpmconf=""
-      downmysqlconf=""
-    ;;
-    3)
-      downapache=""
-      downmysql=""
-      downmysqlconf=""
-    ;;
-    4)
-      downnginx=""
-      downmysql=""
-      downnginxconf=""
-      downmysqlconf=""
-    ;;
-    5)
-      downapache=""
-    ;;
-    6)
-      downnginx=""
-      downnginxconf=""
-    ;;
-    *)
-      echo "error, choose again please"'!!'
-      exit 1
-    esac
-}
-
-
 check_variable ()
 {
 	
@@ -131,17 +67,17 @@ check_variable ()
   if [ "$downnginx" ]
   then
 
-    ls $soulocation/nginx* >/dev/null 2>&1
+    ls $soulocation/nginx* 2>/dev/null
 
     if [ $? -eq 0 ]
     then
-      echo "error, there are sommethings about nginx in $soulocation, Please clean up manually"'!!'
+      echo "Error, There are sommethings about nginx in $soulocation, Please clean up manually"'!!'
       exit 1
     fi
 
     if [ ! "$downnginxconf" ]
     then
-      echo "error,Nginx Configuration file download location not specified"'!!'
+      echo "Error,Nginx Configuration file download location not specified"'!!'
       exit 1
     fi
 
@@ -156,11 +92,11 @@ check_variable ()
   if [ "$downphp" ]
   then
 
-    ls $soulocation/php* >/dev/null 2>&1
+    ls $soulocation/php* 2>/dev/null
 
     if [ $? -eq 0 ]
     then
-      echo "error, There are sommethings about php in $soulocation, Please clean up manually"'!!'
+      echo "Error, There are sommethings about php in $soulocation, Please clean up manually"'!!'
       exit 1
     fi
 
@@ -169,7 +105,7 @@ check_variable ()
 
       if [ ! "$downphpfpmconf" ]
       then
-        echo "error,PHP-FPM Configuration file download location not specified"'!!'
+        echo "Error,PHP-FPM Configuration file download location not specified"'!!'
         exit 1
       fi
 
@@ -186,17 +122,17 @@ check_variable ()
   if [ "$downmysql" ]
   then
 
-    ls $soulocation/mysql* /dev/null 2>&1
+    ls $soulocation/mysql* 2>/dev/null
 
     if [ $? -eq 0 ]
     then
-      echo "error, There are sommethings about mysql in $soulocation, Please clean up manually"'!!'
+      echo "Error, There are sommethings about mysql in $soulocation, Please clean up manually"'!!'
       exit 1
     fi
 
     if [ ! "$downmysqlconf" ]
     then
-      echo "error,MySQL Configuration file download location not specified"'!!'
+      echo "Error,MySQL Configuration file download location not specified"'!!'
       exit 1
     fi
 
@@ -211,11 +147,11 @@ check_variable ()
   if [ "$downapache" ]
   then
 
-    ls $soulocation/httpd* >/dev/null 2>&1
+    ls $soulocation/httpd* 2>/dev/null
 
     if [ $? -eq 0 ]
     then
-      echo "error, There are sommethings about apache in $soulocation, Please clean up manually"'!!'
+      echo "Error, There are sommethings about apache in $soulocation, Please clean up manually"'!!'
       exit 1
     fi
 
@@ -350,8 +286,6 @@ crrect_cenred_selinux ()
     if [ ${isdis} -eq 0 ]
     then
       sed -i "s/^\<SELINUX=.*/SELINUX=disabled/" /etc/selinux/config
-      sed -i "s/^\<SELINUX=.*/SELINUX=disabled/" /etc/sysconfig/selinux
-      setenforce 0
       echo 'Warning,You must Restart the system to make the SELinux configuration take effect!'
       exit 0
     fi
@@ -917,7 +851,7 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 
         if [ $? -eq 0 ]
         then
-          make -j$(grep -c pro /proc/cpuinfo) && make install
+          make && make install
 	  rm -f /etc/php.ini
 	  [ -f $soulocation/php.ini ] && /bin/cp -f $soulocation/php.ini $phptarlocation/etc/
 	  [ -f $soulocation/php-fpm.conf ] && /bin/cp -f $soulocation/php-fpm.conf $phptarlocation/etc/php-fpm.conf
@@ -1035,7 +969,7 @@ EOF
 
         if [ $? -eq 0 ]
         then
-	  make -j$(grep -c pro /proc/cpuinfo) && make install
+	  make && make install
 
 	  if [ $? -eq 0 ]
 	  then
@@ -1091,7 +1025,7 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
 
       if [ $? -eq 0 ]
       then
-        make -j$(grep -c pro /proc/cpuinfo)  && make install
+        make && make install
 
         if [ $? -eq 0 ]
         then
@@ -1285,12 +1219,6 @@ start_service ()
       if [ "$install_nginx_status" -eq 1 ]
       then
         /etc/init.d/nginx start
-        if [ "$?" -eq 0 ]
-        then
-          echo "Nginx service started successfully"'!'
-        else
-          echo "Nginx service started faild"'!!'
-        fi
       fi
 
     fi
@@ -1301,12 +1229,6 @@ start_service ()
       if [ "$install_apache_status" -eq 1 ]
       then
         /etc/init.d/apache start
-        if [ "$?" -eq 0 ]
-        then
-          echo "Apache service started successfully"'!'
-        else
-          echo "Apache service started faild"'!!'
-        fi
       fi
 
     fi
@@ -1317,12 +1239,6 @@ start_service ()
       if [ "$install_php_fpm_status" -eq 1 ]
       then
         /etc/init.d/php-fpm start
-        if [ "$?" -eq 0 ]
-        then
-          echo "Php-fpm service started successfully"'!'
-        else
-          echo "Php-fpm service started faild"'!!'
-        fi
       fi
 
     fi
@@ -1333,12 +1249,6 @@ start_service ()
       if [ "$install_mysql_status" -eq 1 ]
       then
         /etc/init.d/mysql start
-        if [ "$?" -eq 0 ]
-        then
-          echo "Mysql service started successfully"'!'
-        else
-          echo "Mysql service started faild"'!!'
-        fi
       fi
 
     fi
@@ -1353,12 +1263,6 @@ start_service ()
       if [ "$install_nginx_status" -eq 1 ]
       then
         systemctl start nginx
-        if [ "$?" -eq 0 ]
-        then
-          echo "Nginx service started successfully"'!'
-        else
-          echo "Nginx service started faild"'!!'
-        fi
       fi
 
     fi
@@ -1369,12 +1273,6 @@ start_service ()
       if [ "$install_apache_status" -eq 1 ]
       then
         systemctl start apache
-        if [ "$?" -eq 0 ]
-        then
-          echo "Apache service started successfully"'!'
-        else
-          echo "Apache service started faild"'!!'
-        fi
       fi
 
     fi
@@ -1385,12 +1283,6 @@ start_service ()
       if [ "$install_php_fpm_status" -eq 1 ]
       then
         systemctl start php-fpm
-        if [ "$?" -eq 0 ]
-        then
-          echo "Php-fpm service started successfully"'!'
-        else
-          echo "Php-fpm service started faild"'!!'
-        fi
       fi
 
     fi
@@ -1401,12 +1293,6 @@ start_service ()
       if [ "$install_mysql_status" -eq 1 ]
       then
         systemctl start mysql
-        if [ "$?" -eq 0 ]
-        then
-          echo "Mysql service started successfully"'!'
-        else
-          echo "Mysql service started faild"'!!'
-        fi
       fi
 
     fi
@@ -1416,21 +1302,19 @@ start_service ()
 }
 
 
-
-  init_params
-  detect_platform
-  detect_release_version
-  detect_cenred_version
-  check_variable 
-  crrect_cenred_selinux
-  correct_yum_repo
-  correct_sys_time
-  opt_sysctl
-  download
-  ins_depen_pac 
-  ins_nginx_app
-  ins_apache_app
-  ins_php_app
-  ins_mysql_app
-  logrotate
-  start_service
+detect_platform
+detect_release_version
+detect_cenred_version
+check_variable 
+crrect_cenred_selinux
+correct_yum_repo
+correct_sys_time
+opt_sysctl
+download
+ins_depen_pac 
+ins_nginx_app
+ins_apache_app
+ins_php_app
+ins_mysql_app
+logrotate
+start_service
