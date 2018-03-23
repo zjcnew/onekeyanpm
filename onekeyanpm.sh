@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Generic Script Templates For Linux Platform
-# Supported: CentOS RedHat 6/7
-
 
 #####	You need to modify these  ######
 
