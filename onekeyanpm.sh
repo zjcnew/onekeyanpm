@@ -1116,9 +1116,9 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
 	  [ -f /etc/my.cnf ] && mv -f /etc/my.cnf /etc/my.cnf.bak
 	  [ -d /etc/my.cnf.d ] && mv -f /etc/my.cnf.d /etc/my.cnf.d.bak
 	  sed -i "s#^socket.*#socket          = $mysqltarlocation/mysql.sock#" $soulocation/my.cnf
-	  sed -i "s#^log-error.*#log-error          = $mysqltarlocation/log/mysql.log#" $soulocation/my.cnf
-	  sed -i "s#^pid-file.*#pid-file          = $mysqltarlocation/run/mysqld.pid#" $soulocation/my.cnf
-	  sed -i "s#^datadir.*#datadir          = $mysqltarlocation/data#" $soulocation/my.cnf
+	  sed -i "s#^log-error.*#log-error       = $mysqltarlocation/log/mysql.log#" $soulocation/my.cnf
+	  sed -i "s#^pid-file.*#pid-file        = $mysqltarlocation/run/mysqld.pid#" $soulocation/my.cnf
+	  sed -i "s#^datadir.*#datadir         = $mysqltarlocation/data#" $soulocation/my.cnf
 	  sed -i "s#^tmpdir.*#tmpdir          = $mysqltarlocation/tmp#" $soulocation/my.cnf
 	  /bin/cp -f $soulocation/my.cnf $mysqltarlocation/etc/
 	  chown -R mysql.mysql  $mysqltarlocation
@@ -1178,7 +1178,7 @@ LimitNOFILE=65536
 LimitNPROC=65536
 LimitMEMLOCK=infinity
 PIDFile=$mysqltarlocation/run/mysqld.pid
-ExecStart=$mysqltarlocation/bin/mysqld_safe --no-defaults --datadir=$mysqltarlocation/data --pid-file=$mysqltarlocation/run/mysqld.pid --log-error=$mysqltarlocation/log/mysql.log "$*"
+ExecStart=$mysqltarlocation/bin/mysqld_safe --defaults-file=$mysqltarlocation/etc/my.cnf --datadir=$mysqltarlocation/data --pid-file=$mysqltarlocation/run/mysqld.pid --log-error=$mysqltarlocation/log/mysql.log "$*"
 ExecReload=/usr/bin/kill -HUP \$MAINPID
 ExecStop=/usr/bin/kill \$MAINPID
 
