@@ -183,7 +183,7 @@ check_variable ()
   if [ "$downmysql" ]
   then
 
-    ls $soulocation/mysql* /dev/null 2>&1
+    ls $soulocation/mysql* >/dev/null 2>&1
 
     if [ $? -eq 0 ]
     then
