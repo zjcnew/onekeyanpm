@@ -60,7 +60,7 @@ then
     echo "5. Nginx + PHP + PHP-FPM + MySQL"
     echo "6. Apache + PHP + MySQL"  
     echo ""
-    read -p "Please choose the type of deploy environment：" input
+    read -p "Please choose the type of environment：" input
     echo ""
   }
 
@@ -457,8 +457,10 @@ ins_depen_pac ()
   if [ $osver -eq 6 ]
   then
 
-if [ "$downnginx" -a "$downphp" ]
+if [ "$downnginx" ]
 then
+    if [ "$downphp" ]
+    then
 yum install -y \
 gcc gcc-c++ telnet \
 ncurses ncurses-devel \
@@ -468,10 +470,17 @@ libjpeg libjpeg-devel harfbuzz harfbuzz-devel \
 pcre pcre-devel zlib zlib-devel \
 freetype freetype-devel libmcrypt libmcrypt-devel \
 openssl openssl-devel libicu-devel
+    else
+yum install -y \
+gcc gcc-c++ telnet \
+pcre-devel openssl-devel
+    fi
 fi
 
-if [ "$downapache" -a "$downphp" ]
+if [ "$downapache" ]
 then
+    if [ "$downphp" ]
+    then
 yum install -y \
 gcc gcc-c++ perl \
 libxml2-devel \
@@ -479,8 +488,11 @@ expat-devel libpng-devel \
 gmp-devel libmcrypt-devel \
 pcre-devel openssl-devel \
 freetype-devel curl-devel
-
-
+    else
+yum install -y \
+gcc gcc-c++ perl expat-devel \
+pcre-devel openssl-devel
+    fi
 fi
 
 if [ "$downmysql" ]
