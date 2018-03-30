@@ -87,10 +87,10 @@ CentOS/RedHat 6/7
 ## 注意事项
 
  1. 编译环境至少需要**2**GB的空闲内存空间（包含swap），否则可能会导致PHP编译失败！
- 1. 目前仅支持使用.tar.gz压缩格式源代码安装包；
- 1. 如果指定的安装位置存在即将安装的软件或相关的文件，请先手工清除；
- 1. 同一个软件源代码安装包与配置文件的下载路径必须同时指定；
- 1. 目前PHP仅支持5.6版本；MySQL仅支持5.6版本,且编译安装比较漫长，请耐心等待；
- 1. 默认MySQL密码未设置，推荐使用 **mysql_secure_installation** 命令来设置root账户密码。
+ 2. 目前仅支持使用.tar.gz压缩格式源代码安装包；
+ 3. 如果指定的安装位置存在即将安装的软件或相关的文件，请先手工清除；
+ 4. 同一个软件源代码安装包与配置文件的下载路径必须同时指定；
+ 5. 目前PHP仅支持5.6版本；MySQL仅支持5.6版本,且编译安装比较漫长，请耐心等待；
+ 6. 默认MySQL密码未设置，推荐使用 **mysql_secure_installation** 命令来设置root账户密码。
 
   [1]: https://raw.githubusercontent.com/zjcnew/onekeynp/master/onekeyanpm.sh
