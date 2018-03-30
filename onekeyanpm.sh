@@ -1048,6 +1048,7 @@ EOF
             sed -i "s#;session.save_path = .*#session.save_path = \"$phptarlocation/tmp\"#" $phptarlocation/etc/php.ini
             sed -i "s/expose_php.*/expose_php = Off/" $phptarlocation/etc/php.ini
 	    ln -s $soulocation/bin/php /usr/local/bin/ 2>/dev/null
+            install_php_status=1
           else
 	    echo 'Warning,php is not installed successfully!!'
  	    exit 2
@@ -1122,6 +1123,22 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
 	  /bin/cp -f $soulocation/my.cnf $mysqltarlocation/etc/
 	  chown -R mysql.mysql  $mysqltarlocation
 
+          if [ "$install_php_fpm_status" ]
+          then
+              if [ "$install_php_fpm_status" -eq 1 ]
+              then
+                  sed -i "s#^pdo_mysql.default_socket=.*#pdo_mysql.default_socket=$mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+                  sed -i "s#^mysql.default_socket =.*#mysql.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+                  sed -i "s#^mysqli.default_socket =.*#mysqli.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+          elif [ "$install_php_status" ]
+          then
+               if [ "$install_php_status" -eq 1 ]
+               then
+                   sed -i "s#^pdo_mysql.default_socket=.*#pdo_mysql.default_socket=$mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+                   sed -i "s#^mysql.default_socket =.*#mysql.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+                   sed -i "s#^mysqli.default_socket =.*#mysqli.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+          fi
+
           if [ $osver -eq 6 ]
           then
 
@@ -1130,7 +1147,7 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
               echo 'Warning,The mysql service is already exists!'
             else
               cp $mysqltarlocation/support-files/mysql.server /etc/init.d/mysql
-              sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
+              sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/mysql
               chmod 755 /etc/init.d/mysql
 	      ln -s $mysqltarlocation/bin/* /usr/local/bin 2>/dev/null
               chkconfig --add mysql
