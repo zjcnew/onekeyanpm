@@ -584,7 +584,6 @@ ins_nginx_app ()
 	  useradd -M -s /sbin/nologin nginx
         fi
 
-        [ -f $soulocation/nginx.conf ] && /bin/cp -f $soulocation/nginx.conf $nginxtarlocation/conf/
         rm -fr $nginxtarlocation/html/*
         chown -R nginx.nginx $nginxtarlocation
 
@@ -685,7 +684,7 @@ LimitNOFILE=655360
 LimitNPROC=655360
 PIDFile=$nginxtarlocation/run/nginx.pid
 ExecStartPre=$nginxtarlocation/sbin/nginx -t -c $nginxtarlocation/conf/nginx.conf
-ExecStart=$nginxtarlocation/sbin/nginx
+ExecStart=$nginxtarlocation/sbin/nginx -c $nginxtarlocation/conf/nginx.conf
 ExecReload=$nginxtarlocation/sbin/nginx -s reload
 ExecStop=$nginxtarlocation/sbin/nginx -s stop
 
@@ -803,7 +802,6 @@ cd $soulocation/httpd-*
           #sed -i "242s/AllowOverride None/AllowOverride All/" $apachetarlocation/conf/httpd.conf
           sed -i "s/Options Indexes FollowSymLinks/Options  FollowSymLinks/" $apachetarlocation/conf/httpd.conf
           sed -i ':a;N;$!ba;s/AllowOverride None/AllowOverride All/' $apachetarlocation/conf/httpd.conf
-          sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
           sed -i "s/^Listen 80/Listen 0.0.0.0:80/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#ServerName www.example.com:80/ServerName www.example.com:80/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#LoadModule rewrite_module modules\/mod_rewrite.so/LoadModule rewrite_module modules\/mod_rewrite.so/" $apachetarlocation/conf/httpd.conf
@@ -814,17 +812,6 @@ cd $soulocation/httpd-*
 	  rm -f  $apachetarlocation/htdocs/*
 	  chown -R daemon.daemon $apachetarlocation
 
-cat >> $apachetarlocation/conf/httpd.conf << EOF
-
-<FilesMatch "\.ph(p[2-6]?|tml)$">
-    SetHandler application/x-httpd-php
-</FilesMatch>
-
-<FilesMatch "\.phps$">
-    SetHandler application/x-httpd-php-source
-</FilesMatch>
-
-EOF
 
             if [ $osver -eq 6  ]
 	    then
@@ -928,6 +915,7 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 	  then
 	    mkdir $phptarlocation/tmp
 	    ln -s $phptarlocation/bin/* /usr/local/bin/ 2>/dev/null
+            [ -f $soulocation/nginx.conf ] && /bin/cp -f $soulocation/nginx.conf $nginxtarlocation/conf/
 	    chown nginx.nginx $phptarlocation/tmp/
             sed -i "s#^session.save_path =.*#session.save_path = \"$phptarlocation/tmp\"#" $phptarlocation/etc/php.ini
 	  else
@@ -1051,6 +1039,21 @@ EOF
             sed -i "s/expose_php.*/expose_php = Off/" $phptarlocation/etc/php.ini
 	    ln -s $soulocation/bin/php /usr/local/bin/ 2>/dev/null
             install_php_status=1
+
+            sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
+
+cat >> $apachetarlocation/conf/httpd.conf << EOF
+
+<FilesMatch "\.ph(p[2-6]?|tml)$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+<FilesMatch "\.phps$">
+    SetHandler application/x-httpd-php-source
+</FilesMatch>
+
+EOF
+
           else
 	    echo 'Warning,php is not installed successfully!!'
  	    exit 2
@@ -1058,6 +1061,7 @@ EOF
 
         else
 	  echo 'Error, There was an error in configuring php Before compiling!!'
+          exit 2
 	fi
 
       fi
@@ -1201,6 +1205,9 @@ EOF
 	$mysqltarlocation/scripts/mysql_install_db --keep-my-cnf --user=mysql --basedir=$mysqltarlocation --datadir=$mysqltarlocation/data
         fi
 			
+      else
+        echo "Some errors before compiling mysql" '!!'
+        exit 2
       fi
 
     fi
