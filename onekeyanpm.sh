@@ -494,7 +494,7 @@ fi
 
 if [ "$downnginx" ]
 then
-    if ["$downphp" ]
+    if [ "$downphp" ]
     then
 yum install -y \
 gcc gcc-c++ telnet \
@@ -511,15 +511,24 @@ gcc gcc-c++ pcre-devel openssl-devel
     fi
 fi
 
-if [ "$downapache" -a "$downphp" ]
+if [ "$downapache" ]
 then
-yum install -y gcc cmake gcc-c++ \
+    if [ "$downphp" ]
+    then
+yum install -y \
+gcc cmake gcc-c++ perl \
 apr-devel apr-util-devel \
 openssl-devel apr-util-devel \
 libxml2-devel libpng-devel \
 libmcrypt-devel zlib-devel \
 gmp-devel curl-devel \
 freetype-devel
+    else
+yum install -y \
+gcc gcc-c++ \
+expat-devel pcre-devel \
+openssl-devel
+    fi
 fi
 
 
@@ -733,12 +742,7 @@ ins_apache_app ()
 
     if [ $? -eq 0 ]
     then
-      cd $soulocation && \
-      tar zxvf httpd*.tar.gz && \
-      cd httpd-*
 
-      if [ $osver -eq 6 ]
-      then
         aprtarlocation="$apachetarlocation/../apr" 2>/dev/null
         aprutiltarlocation="$apachetarlocation/../apr-util" 2>/dev/null
 
@@ -784,7 +788,9 @@ ins_apache_app ()
 
           if [ "$install_aprutil_status" -eq 1 ]
           then
-cd $soulocation/httpd-*
+             cd $soulocation && \
+             tar zxvf httpd*.tar.gz && \
+             cd httpd-*
 ./configure --prefix=$apachetarlocation \
 --enable-ssl --enable-so --with-pcre \
 --enable-rewrite --with-mpm=worker \
@@ -796,15 +802,6 @@ cd $soulocation/httpd-*
           echo "Error,apr-util compilation failed!!"
           exit 2
         fi
-
-      elif [ $osver -eq 7 ]
-      then
-cd $soulocation/httpd-*
-./configure --prefix=$apachetarlocation \
---enable-ssl --enable-so --with-pcre \
---enable-rewrite --with-mpm=worker
-      fi
-
 
       if [ $? -eq 0 ]
       then
