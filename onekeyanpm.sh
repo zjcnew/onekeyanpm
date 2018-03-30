@@ -1130,6 +1130,7 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
                   sed -i "s#^pdo_mysql.default_socket=.*#pdo_mysql.default_socket=$mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
                   sed -i "s#^mysql.default_socket =.*#mysql.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
                   sed -i "s#^mysqli.default_socket =.*#mysqli.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+              fi
           elif [ "$install_php_status" ]
           then
                if [ "$install_php_status" -eq 1 ]
@@ -1137,6 +1138,7 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
                    sed -i "s#^pdo_mysql.default_socket=.*#pdo_mysql.default_socket=$mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
                    sed -i "s#^mysql.default_socket =.*#mysql.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
                    sed -i "s#^mysqli.default_socket =.*#mysqli.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+               fi
           fi
 
           if [ $osver -eq 6 ]
