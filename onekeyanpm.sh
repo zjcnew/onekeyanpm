@@ -492,8 +492,10 @@ fi
   elif [ $osver -eq 7 ]
   then
 
-if [ "$downnginx" -a "$downphp" ]
+if [ "$downnginx" ]
 then
+    if ["$downphp" ]
+    then
 yum install -y \
 gcc gcc-c++ telnet \
 ncurses ncurses-devel \
@@ -503,6 +505,10 @@ libjpeg libjpeg-devel harfbuzz harfbuzz-devel \
 pcre pcre-devel zlib zlib-devel \
 freetype freetype-devel libmcrypt libmcrypt-devel \
 openssl openssl-devel
+    else
+yum install -y \
+gcc gcc-c++ pcre-devel openssl-devel
+    fi
 fi
 
 if [ "$downapache" -a "$downphp" ]
@@ -584,6 +590,13 @@ ins_nginx_app ()
 	  useradd -M -s /sbin/nologin nginx
         fi
 
+        sed -i "s/^worker_processes.*/worker_processes  auto;/" $nginxtarlocation/conf/nginx.conf
+        sed -i "/^worker_processes/a\worker_cpu_affinity auto;" $nginxtarlocation/conf/nginx.conf
+        sed -i "/^events {/a\    use epoll;" $nginxtarlocation/conf/nginx.conf
+        sed -i "s/worker_connections.*/worker_connections  102400;/" $nginxtarlocation/conf/nginx.conf
+        sed -i "/worker_connections/a\    multi_accept on;" $nginxtarlocation/conf/nginx.conf
+        sed -i "s/#tcp_nopush.*/tcp_nopush     on;/" $nginxtarlocation/conf/nginx.conf
+        sed -i "s/#gzip.*/gzip  on;/" $nginxtarlocation/conf/nginx.conf
         rm -fr $nginxtarlocation/html/*
         chown -R nginx.nginx $nginxtarlocation
 
