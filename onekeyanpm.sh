@@ -512,7 +512,8 @@ apr-devel apr-util-devel \
 openssl-devel apr-util-devel \
 libxml2-devel libpng-devel \
 libmcrypt-devel zlib-devel \
-gmp-devel curl-devel
+gmp-devel curl-devel \
+freetype-devel
 fi
 
 
@@ -803,6 +804,7 @@ cd $soulocation/httpd-*
           sed -i "s/Options Indexes FollowSymLinks/Options  FollowSymLinks/" $apachetarlocation/conf/httpd.conf
           sed -i ':a;N;$!ba;s/AllowOverride None/AllowOverride All/' $apachetarlocation/conf/httpd.conf
           sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
+          sed -i "s/^Listen 80/Listen 0.0.0.0:80/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#ServerName www.example.com:80/ServerName www.example.com:80/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#LoadModule rewrite_module modules\/mod_rewrite.so/LoadModule rewrite_module modules\/mod_rewrite.so/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#EnableSendfile on/EnableSendfile on/" $apachetarlocation/conf/httpd.conf
