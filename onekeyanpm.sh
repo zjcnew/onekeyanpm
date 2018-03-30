@@ -60,7 +60,7 @@ then
     echo "5. Nginx + PHP + PHP-FPM + MySQL"
     echo "6. Apache + PHP + MySQL"  
     echo ""
-    read -p "Please choose the type of deploy environment：" input
+    read -p "Please choose the type of environment：" input
     echo ""
   }
 
@@ -183,7 +183,7 @@ check_variable ()
   if [ "$downmysql" ]
   then
 
-    ls $soulocation/mysql* /dev/null 2>&1
+    ls $soulocation/mysql* >/dev/null 2>&1
 
     if [ $? -eq 0 ]
     then
@@ -457,8 +457,10 @@ ins_depen_pac ()
   if [ $osver -eq 6 ]
   then
 
-if [ "$downnginx" -a "$downphp" ]
+if [ "$downnginx" ]
 then
+    if [ "$downphp" ]
+    then
 yum install -y \
 gcc gcc-c++ telnet \
 ncurses ncurses-devel \
@@ -468,10 +470,17 @@ libjpeg libjpeg-devel harfbuzz harfbuzz-devel \
 pcre pcre-devel zlib zlib-devel \
 freetype freetype-devel libmcrypt libmcrypt-devel \
 openssl openssl-devel libicu-devel
+    else
+yum install -y \
+gcc gcc-c++ telnet \
+pcre-devel openssl-devel
+    fi
 fi
 
-if [ "$downapache" -a "$downphp" ]
+if [ "$downapache" ]
 then
+    if [ "$downphp" ]
+    then
 yum install -y \
 gcc gcc-c++ perl \
 libxml2-devel \
@@ -479,8 +488,11 @@ expat-devel libpng-devel \
 gmp-devel libmcrypt-devel \
 pcre-devel openssl-devel \
 freetype-devel curl-devel
-
-
+    else
+yum install -y \
+gcc gcc-c++ perl expat-devel \
+pcre-devel openssl-devel
+    fi
 fi
 
 if [ "$downmysql" ]
@@ -492,8 +504,10 @@ fi
   elif [ $osver -eq 7 ]
   then
 
-if [ "$downnginx" -a "$downphp" ]
+if [ "$downnginx" ]
 then
+    if [ "$downphp" ]
+    then
 yum install -y \
 gcc gcc-c++ telnet \
 ncurses ncurses-devel \
@@ -503,16 +517,30 @@ libjpeg libjpeg-devel harfbuzz harfbuzz-devel \
 pcre pcre-devel zlib zlib-devel \
 freetype freetype-devel libmcrypt libmcrypt-devel \
 openssl openssl-devel
+    else
+yum install -y \
+gcc gcc-c++ pcre-devel openssl-devel
+    fi
 fi
 
-if [ "$downapache" -a "$downphp" ]
+if [ "$downapache" ]
 then
-yum install -y gcc cmake gcc-c++ \
+    if [ "$downphp" ]
+    then
+yum install -y \
+gcc cmake gcc-c++ perl \
 apr-devel apr-util-devel \
 openssl-devel apr-util-devel \
 libxml2-devel libpng-devel \
 libmcrypt-devel zlib-devel \
-gmp-devel curl-devel
+gmp-devel curl-devel \
+freetype-devel
+    else
+yum install -y \
+gcc gcc-c++ \
+expat-devel pcre-devel \
+openssl-devel
+    fi
 fi
 
 
@@ -583,7 +611,13 @@ ins_nginx_app ()
 	  useradd -M -s /sbin/nologin nginx
         fi
 
-        [ -f $soulocation/nginx.conf ] && /bin/cp -f $soulocation/nginx.conf $nginxtarlocation/conf/
+        sed -i "s/^worker_processes.*/worker_processes  auto;/" $nginxtarlocation/conf/nginx.conf
+        sed -i "/^worker_processes/a\worker_cpu_affinity auto;" $nginxtarlocation/conf/nginx.conf
+        sed -i "/^events {/a\    use epoll;" $nginxtarlocation/conf/nginx.conf
+        sed -i "s/worker_connections.*/worker_connections  102400;/" $nginxtarlocation/conf/nginx.conf
+        sed -i "/worker_connections/a\    multi_accept on;" $nginxtarlocation/conf/nginx.conf
+        sed -i "s/#tcp_nopush.*/tcp_nopush     on;/" $nginxtarlocation/conf/nginx.conf
+        sed -i "s/#gzip.*/gzip  on;/" $nginxtarlocation/conf/nginx.conf
         rm -fr $nginxtarlocation/html/*
         chown -R nginx.nginx $nginxtarlocation
 
@@ -684,7 +718,7 @@ LimitNOFILE=655360
 LimitNPROC=655360
 PIDFile=$nginxtarlocation/run/nginx.pid
 ExecStartPre=$nginxtarlocation/sbin/nginx -t -c $nginxtarlocation/conf/nginx.conf
-ExecStart=$nginxtarlocation/sbin/nginx
+ExecStart=$nginxtarlocation/sbin/nginx -c $nginxtarlocation/conf/nginx.conf
 ExecReload=$nginxtarlocation/sbin/nginx -s reload
 ExecStop=$nginxtarlocation/sbin/nginx -s stop
 
@@ -720,12 +754,7 @@ ins_apache_app ()
 
     if [ $? -eq 0 ]
     then
-      cd $soulocation && \
-      tar zxvf httpd*.tar.gz && \
-      cd httpd-*
 
-      if [ $osver -eq 6 ]
-      then
         aprtarlocation="$apachetarlocation/../apr" 2>/dev/null
         aprutiltarlocation="$apachetarlocation/../apr-util" 2>/dev/null
 
@@ -771,7 +800,9 @@ ins_apache_app ()
 
           if [ "$install_aprutil_status" -eq 1 ]
           then
-cd $soulocation/httpd-*
+             cd $soulocation && \
+             tar zxvf httpd*.tar.gz && \
+             cd httpd-*
 ./configure --prefix=$apachetarlocation \
 --enable-ssl --enable-so --with-pcre \
 --enable-rewrite --with-mpm=worker \
@@ -784,15 +815,6 @@ cd $soulocation/httpd-*
           exit 2
         fi
 
-      elif [ $osver -eq 7 ]
-      then
-cd $soulocation/httpd-*
-./configure --prefix=$apachetarlocation \
---enable-ssl --enable-so --with-pcre \
---enable-rewrite --with-mpm=worker
-      fi
-
-
       if [ $? -eq 0 ]
       then
 	make && make install
@@ -802,7 +824,7 @@ cd $soulocation/httpd-*
           #sed -i "242s/AllowOverride None/AllowOverride All/" $apachetarlocation/conf/httpd.conf
           sed -i "s/Options Indexes FollowSymLinks/Options  FollowSymLinks/" $apachetarlocation/conf/httpd.conf
           sed -i ':a;N;$!ba;s/AllowOverride None/AllowOverride All/' $apachetarlocation/conf/httpd.conf
-          sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
+          sed -i "s/^Listen 80/Listen 0.0.0.0:80/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#ServerName www.example.com:80/ServerName www.example.com:80/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#LoadModule rewrite_module modules\/mod_rewrite.so/LoadModule rewrite_module modules\/mod_rewrite.so/" $apachetarlocation/conf/httpd.conf
 	  sed -i "s/^#EnableSendfile on/EnableSendfile on/" $apachetarlocation/conf/httpd.conf
@@ -812,17 +834,6 @@ cd $soulocation/httpd-*
 	  rm -f  $apachetarlocation/htdocs/*
 	  chown -R daemon.daemon $apachetarlocation
 
-cat >> $apachetarlocation/conf/httpd.conf << EOF
-
-<FilesMatch "\.ph(p[2-6]?|tml)$">
-    SetHandler application/x-httpd-php
-</FilesMatch>
-
-<FilesMatch "\.phps$">
-    SetHandler application/x-httpd-php-source
-</FilesMatch>
-
-EOF
 
             if [ $osver -eq 6  ]
 	    then
@@ -926,6 +937,7 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 	  then
 	    mkdir $phptarlocation/tmp
 	    ln -s $phptarlocation/bin/* /usr/local/bin/ 2>/dev/null
+            [ -f $soulocation/nginx.conf ] && /bin/cp -f $soulocation/nginx.conf $nginxtarlocation/conf/
 	    chown nginx.nginx $phptarlocation/tmp/
             sed -i "s#^session.save_path =.*#session.save_path = \"$phptarlocation/tmp\"#" $phptarlocation/etc/php.ini
 	  else
@@ -1048,6 +1060,22 @@ EOF
             sed -i "s#;session.save_path = .*#session.save_path = \"$phptarlocation/tmp\"#" $phptarlocation/etc/php.ini
             sed -i "s/expose_php.*/expose_php = Off/" $phptarlocation/etc/php.ini
 	    ln -s $soulocation/bin/php /usr/local/bin/ 2>/dev/null
+            install_php_status=1
+
+            sed -i "s/DirectoryIndex index.html.*/DirectoryIndex index.html index.php/" $apachetarlocation/conf/httpd.conf
+
+cat >> $apachetarlocation/conf/httpd.conf << EOF
+
+<FilesMatch "\.ph(p[2-6]?|tml)$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+<FilesMatch "\.phps$">
+    SetHandler application/x-httpd-php-source
+</FilesMatch>
+
+EOF
+
           else
 	    echo 'Warning,php is not installed successfully!!'
  	    exit 2
@@ -1055,6 +1083,7 @@ EOF
 
         else
 	  echo 'Error, There was an error in configuring php Before compiling!!'
+          exit 2
 	fi
 
       fi
@@ -1115,12 +1144,30 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
 	  [ -f /etc/my.cnf ] && mv -f /etc/my.cnf /etc/my.cnf.bak
 	  [ -d /etc/my.cnf.d ] && mv -f /etc/my.cnf.d /etc/my.cnf.d.bak
 	  sed -i "s#^socket.*#socket          = $mysqltarlocation/mysql.sock#" $soulocation/my.cnf
-	  sed -i "s#^log-error.*#log-error          = $mysqltarlocation/log/mysql.log#" $soulocation/my.cnf
-	  sed -i "s#^pid-file.*#pid-file          = $mysqltarlocation/run/mysqld.pid#" $soulocation/my.cnf
-	  sed -i "s#^datadir.*#datadir          = $mysqltarlocation/data#" $soulocation/my.cnf
+	  sed -i "s#^log-error.*#log-error       = $mysqltarlocation/log/mysql.log#" $soulocation/my.cnf
+	  sed -i "s#^pid-file.*#pid-file        = $mysqltarlocation/run/mysqld.pid#" $soulocation/my.cnf
+	  sed -i "s#^datadir.*#datadir         = $mysqltarlocation/data#" $soulocation/my.cnf
 	  sed -i "s#^tmpdir.*#tmpdir          = $mysqltarlocation/tmp#" $soulocation/my.cnf
 	  /bin/cp -f $soulocation/my.cnf $mysqltarlocation/etc/
 	  chown -R mysql.mysql  $mysqltarlocation
+
+          if [ "$install_php_fpm_status" ]
+          then
+              if [ "$install_php_fpm_status" -eq 1 ]
+              then
+                  sed -i "s#^pdo_mysql.default_socket=.*#pdo_mysql.default_socket=$mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+                  sed -i "s#^mysql.default_socket =.*#mysql.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+                  sed -i "s#^mysqli.default_socket =.*#mysqli.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+              fi
+          elif [ "$install_php_status" ]
+          then
+               if [ "$install_php_status" -eq 1 ]
+               then
+                   sed -i "s#^pdo_mysql.default_socket=.*#pdo_mysql.default_socket=$mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+                   sed -i "s#^mysql.default_socket =.*#mysql.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+                   sed -i "s#^mysqli.default_socket =.*#mysqli.default_socket = $mysqltarlocation/mysql.sock#" $phptarlocation/etc/php.ini
+               fi
+          fi
 
           if [ $osver -eq 6 ]
           then
@@ -1130,7 +1177,7 @@ cmake . -DCMAKE_INSTALL_PREFIX=$mysqltarlocation \
               echo 'Warning,The mysql service is already exists!'
             else
               cp $mysqltarlocation/support-files/mysql.server /etc/init.d/mysql
-              sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/php-fpm
+              sed -i "/# Required-Stop:/a# chkconfig: 2345 67 33" /etc/init.d/mysql
               chmod 755 /etc/init.d/mysql
 	      ln -s $mysqltarlocation/bin/* /usr/local/bin 2>/dev/null
               chkconfig --add mysql
@@ -1159,7 +1206,7 @@ LimitNOFILE=65536
 LimitNPROC=65536
 LimitMEMLOCK=infinity
 PIDFile=$mysqltarlocation/run/mysqld.pid
-ExecStart=$mysqltarlocation/bin/mysqld_safe --no-defaults --datadir=$mysqltarlocation/data --pid-file=$mysqltarlocation/run/mysqld.pid --log-error=$mysqltarlocation/log/mysql.log "$*"
+ExecStart=$mysqltarlocation/bin/mysqld_safe --defaults-file=$mysqltarlocation/etc/my.cnf --datadir=$mysqltarlocation/data --pid-file=$mysqltarlocation/run/mysqld.pid --log-error=$mysqltarlocation/log/mysql.log "$*"
 ExecReload=/usr/bin/kill -HUP \$MAINPID
 ExecStop=/usr/bin/kill \$MAINPID
 
@@ -1180,6 +1227,9 @@ EOF
 	$mysqltarlocation/scripts/mysql_install_db --keep-my-cnf --user=mysql --basedir=$mysqltarlocation --datadir=$mysqltarlocation/data
         fi
 			
+      else
+        echo "Some errors before compiling mysql" '!!'
+        exit 2
       fi
 
     fi
