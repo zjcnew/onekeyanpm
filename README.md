@@ -21,21 +21,21 @@ CentOS/RedHat 6/7
  2. 应用程序的源码包文件默认从对应的官网下载，您可以自由修改下载地址；安装位置默认 /data/app 目录，您也可修改安装到其他位置；
  3. 执行脚本 bash onekeyanpm.sh，选择环境类型即可自动部署；
  4. 网页代码上传目录
-     #### **Nginx**
+     ### **Nginx**
 - /data/app/nginx/html
-     #### **Apache**
+     ### **Apache**
 - /data/app/apache/htdocs
  5. 文件目录授权
-      #### **Nginx**
+     ### **Nginx**
 - chown -R nginx.nginx /data/app/nginx/html
-     #### **Apache**
+     ### **Apache**
 - chown -R daemon.daemon /data/app/apache/htdocs
- 3. 服务启动/停止/重启用法（示例）
-       ####  CentOS/Redhat **6**
+6. 服务启动/停止/重启用法（示例）
+      ###  CentOS/Redhat **6**
  - /etc/init.d/nginx start
  - /etc/init.d/nginx stop
  - /etc/init.d/nginx restart
-      #### CentOS/Redhat **7**
+      ### CentOS/Redhat **7**
  - systemctl start nginx
  - systemctl stop nginx
  - systemctl restart nginx
