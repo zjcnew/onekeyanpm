@@ -55,10 +55,11 @@ then
     echo ""
     echo "1. Nginx"
     echo "2. Apache"
-    echo "3. Nginx + PHP + PHP-FPM"
-    echo "4. Apache + PHP"
-    echo "5. Nginx + PHP + PHP-FPM + MySQL"
-    echo "6. Apache + PHP + MySQL"  
+    echo "3. MySQL"
+    echo "4. Nginx + PHP + PHP-FPM"
+    echo "5. Apache + PHP"
+    echo "6. Nginx + PHP + PHP-FPM + MySQL"
+    echo "7. Apache + PHP + MySQL"  
     echo ""
     read -p "Please choose the type of environment：" input
     echo ""
@@ -88,20 +89,28 @@ init_params() {
       downmysqlconf=""
     ;;
     3)
+      downnginx=""
+      downapache=""
+      downphp=""
+      downnginxconf=""
+      downphpconf=""
+      downphpfpmconf=""
+    ;;
+    4)
       downapache=""
       downmysql=""
       downmysqlconf=""
     ;;
-    4)
+    5)
       downnginx=""
       downmysql=""
       downnginxconf=""
       downmysqlconf=""
     ;;
-    5)
+    6)
       downapache=""
     ;;
-    6)
+    7)
       downnginx=""
       downnginxconf=""
     ;;
