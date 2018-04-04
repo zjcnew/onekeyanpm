@@ -9,6 +9,7 @@ CentOS/RedHat 6/7
  以下为支持的环境类型，请选择一种环境进行部署
  - Nginx
  - Apache
+ - MySQL
  - Nginx + PHP + PHP-FPM
  - Apache + PHP
  - Nginx + PHP + PHP-FPM + MySQL
