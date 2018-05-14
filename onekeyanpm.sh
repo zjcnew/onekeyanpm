@@ -1,4 +1,14 @@
 #!/bin/bash
+#
+
+               # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+               #                                                         #
+               #      Linux平台一键部署Apache/Nginx+PHP+MySQL环境        #
+               #                                                         #
+               #  GitHub项目地址： https://github.com/zjcnew/onekeyanpm  #
+               #                                                         #
+               # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 
 
 # Nginx源码包下载地址，默认从官网下载。
