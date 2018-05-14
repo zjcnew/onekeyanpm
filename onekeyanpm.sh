@@ -2,16 +2,16 @@
 
 
 # Nginx源码包下载地址，默认从官网下载。
-downnginx="http://nginx.org/download/nginx-1.12.2.tar.gz"
+downnginx="http://nginx.org/download/nginx-1.14.0.tar.gz"
 
 # Apache源码包下载地址，默认从官网下载。
 downapache="https://mirrors.tuna.tsinghua.edu.cn/apache/httpd/httpd-2.4.29.tar.gz"
 
 # PHP源码包下载地址，默认从官网下载。
-downphp="http://cn2.php.net/distributions/php-5.6.34.tar.gz"
+downphp="http://cn2.php.net/distributions/php-5.6.35.tar.gz"
 
 # MySQL源码包下载地址，默认从官网下载。
-downmysql="https://cdn.mysql.com//Downloads/MySQL-5.6/mysql-5.6.39.tar.gz"
+downmysql="https://cdn.mysql.com//Downloads/MySQL-5.6/mysql-5.6.40.tar.gz"
 
 # Nginx配置文件下载地址
 downnginxconf="https://raw.githubusercontent.com/zjcnew/onekeynp/master/nginx.conf"
