@@ -331,6 +331,21 @@ detect_release_version ()
 }
 
 
+detect_arch_info ()
+{
+
+  if [ $(uname -a | egrep -c -i 'x86_64') -eq 1 ]
+  then
+      arch="64"
+  elif [ $(uname -a | egrep -c -i 'i386|i686') -eq 1 ]
+      arch="86"
+  else
+    echo 'Error,This is an unknown architecture!!' 
+  fi
+
+}
+
+
 detect_cenred_version ()
 {
 
@@ -972,9 +987,17 @@ cd $soulocation && tar zxvf php*.tar.gz && cd php-*
 	  fi
 
 	  cd ..
-	  curl -O http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-x86_64_update1.tar.gz
-	  tar zxf zend-loader-php5.6-linux-x86_64_update1.tar.gz 
-	  cp zend-loader-php5.6-linux-x86_64/ZendGuardLoader.so $phptarlocation/lib/php/extensions/no-debug-non-zts-20131226/
+          if [ ${arch} == '64' ]
+          then
+	      curl -O http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-x86_64_update1.tar.gz
+	      tar zxf zend-loader-php5.6-linux-x86_64_update1.tar.gz
+	      cp zend-loader-php5.6-linux-x86_64/ZendGuardLoader.so $phptarlocation/lib/php/extensions/no-debug-non-zts-20131226/
+          elif [ ${arch} == '86' ]
+          then
+              curl -O http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-i386_update1.tar.gz
+              tar zxf zend-loader-php5.6-linux-i386_update1.tar.gz
+	      cp zend-loader-php5.6-linux-i386/ZendGuardLoader.so $phptarlocation/lib/php/extensions/no-debug-non-zts-20131226/
+          fi
         else
           echo 'Error, There was an error in configuring php Before compiling!!'
           exit 2
@@ -1265,8 +1288,8 @@ logrotate ()
 cat > /etc/logrotate.d/nginx << EOF
 $nginxtarlocation/logs/*.log {
     create 0644 nginx nginx
-    daily
-    rotate 30
+    weekly
+    rotate 4
     dateext
     missingok
     notifempty
@@ -1294,7 +1317,7 @@ cat > /etc/logrotate.d/apache << EOF
 $apachetarlocation/logs/*_log {
         notifempty
         weekly
-        rotate 15
+        rotate 4
         dateext
         missingok
         compress
@@ -1484,6 +1507,7 @@ start_service ()
   init_params
   detect_platform
   detect_release_version
+  detect_arch_info
   detect_cenred_version
   check_variable 
   crrect_cenred_selinux
