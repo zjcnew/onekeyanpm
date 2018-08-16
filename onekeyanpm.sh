@@ -588,12 +588,7 @@ ins_nginx_app ()
       cd $soulocation && \
       tar zxvf nginx*.tar.gz && \
       cd nginx-* && \
-      sed -i 's:CFLAGS="$CFLAGS -g":#CFLAGS="$CFLAGS -g":' auto/cc/gcc
-      sed -i 's:"1.12.1":"":' src/core/nginx.h
-      sed -i 's:"nginx/":"":' src/core/nginx.h
-      sed -i 's:"Server\: nginx":"Server\: ":' src/http/ngx_http_header_filter_module.c
-      sed -i 's:" NGINX_VER "::' src/http/ngx_http_special_response.c
-      sed -i 's:"<hr><center>nginx</center>":"<hr><center></center>":' src/http/ngx_http_special_response.c
+      sed -i 's:^CFLAGS="$CFLAGS -g":#CFLAGS="$CFLAGS -g":' auto/cc/gcc
 	
 ./configure --prefix=$nginxtarlocation \
 --pid-path=$nginxtarlocation/run/nginx.pid \
