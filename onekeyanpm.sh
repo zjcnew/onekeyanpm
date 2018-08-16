@@ -338,6 +338,7 @@ detect_arch_info ()
   then
       arch="64"
   elif [ $(uname -a | egrep -c -i 'i386|i686') -eq 1 ]
+  then
       arch="86"
   else
     echo 'Error,This is an unknown architecture!!' 
